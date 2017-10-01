@@ -1,0 +1,56 @@
+---
+title: "Traffic by Medium"
+---
+
+This example pulls *sessions* and by *medium* for the last 30 days and then plots the data on a line chart.
+
+# Setup/Config
+
+```{r child='includes/z_setup.Rmd'}
+```
+
+# Pull the Data
+
+This is a simple query. 
+
+```{r data-pull, message=FALSE, warnings=FALSE, results='hide'}
+# Pull the data. See ?google_analytics_4() for additional parameters. The anti_sample = TRUE
+# parameter will slow the query down a smidge and isn't strictly necessary, but it will
+# ensure you do not get sampled data.
+ga_data <- google_analytics_4(viewId = view_id,
+                              date_range = c(start_date, end_date),
+                              metrics = "sessions",
+                              dimensions = c("date","medium"),
+                              anti_sample = TRUE)
+
+# Go ahead and do a quick inspection of the data that was returned. This isn't required,
+# but it's a good check along the way.
+head(ga_data)
+```
+
+```{r data-pull-display, echo=FALSE, message=FALSE, warnings=FALSE}
+# Nicer display of the head
+kable(head(ga_data))
+```
+
+# Data Munging
+
+We don't actually need to do any data munging in this example (although, in practice, there may be some cleanup that you'd wind up wanting to do). The data as it comes out of GA is pretty much plottable as is.
+
+# Data Visualization
+
+This won't be the prettiest plot, but this example isn't diving into the details of ggplot2. If you want to read up on that, [this page on dartistics.com](http://www.dartistics.com/ggplot2.html) is worth checking out.
+
+```{r visualize, message=FALSE, warnings=FALSE}
+
+# Create the plot.
+gg <- ggplot(ga_data, mapping = aes(x = date, y = sessions, colour = medium)) +
+  geom_line() +
+  theme_light()
+
+# Output the plot. You *could* just remove the "gg <-" in the code above, but it's
+# generally a best practice to create a plot object and then output it, rather than
+# outputting it on the fly.
+gg
+
+```

@@ -1,0 +1,37 @@
+name: "Google Analytics and R - Examples"
+output_dir: "../dartistics.com/googleanalytics"
+navbar:
+  title: "GA & R"
+  left:
+    - text: "Overview"
+      href: index.html
+    - text: "Initial Setup"
+      href: setup.html
+    - text: "Basic Examples"
+      menu:
+       - text: "Trended Sessions by Medium"
+         href: simple-trended-sessions-by-medium.html
+       - text: "Simple Dimension Filter"
+         href: simple-dim-filter.html
+       - text: "Medium Ordered by Sessions"
+         href: simple-medium-ordered-by-sessions.html
+       - text: "Apply Segment by Segment ID"
+         href: segment-by-id.html
+       - text: "Pivot in a Query"
+         href: pivot-in-query.html
+    - text: "Intermediate Examples"
+      menu:
+       - text: "2D Sparklines/Heatmap"
+         href: pivot-sparklines-heatmap.html
+       - text: "Simple Dynamic Segment - v4"
+         href: simple-dynamic-segment.html
+       - text: "Simple Dynamic Segment - v3"
+         href: simple-dynamic-segment-v3.html
+output:
+  html_document:
+    theme: simplex
+    css: includes/styles.css
+    title-prefix: "Google Analytics and R Examples"
+    includes:
+      before_body: includes/analytics.html
+      after_body: includes/footer.html

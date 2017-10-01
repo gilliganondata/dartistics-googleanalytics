@@ -1,0 +1,77 @@
+---
+title: "Medium Ordered by Sessions"
+---
+
+This example pulls the top 5 *mediums* by *sessions* for the last 30 days ordered in descending order by sessions.
+
+# Setup/Config
+
+```{r child='includes/z_setup.Rmd'}
+```
+
+# Pull the Data
+
+We just have to create an `order_type` object and then include that in the query.
+
+```{r data-pull, message=FALSE, warnings=FALSE, results='hide'}
+
+# Create an order type object.
+order_sessions_desc <- order_type("sessions",
+                                  sort_order = "DESCENDING",
+                                  orderType = "VALUE")
+
+# Pull the data. See ?google_analytics_4() for additional parameters. Note that we are
+# NOT using anti_sample = TRUE. This is because we are setting max = 5, and the max
+# argument has no impact when anti_sample = TRUE.
+ga_data <- google_analytics_4(viewId = view_id,
+                              date_range = c(start_date, end_date),
+                              metrics = "sessions",
+                              dimensions = "medium",
+                              order = order_sessions_desc,
+                              max = 5)
+
+# Go ahead and do a quick inspection of the data that was returned. This isn't required,
+# but it's a good check along the way.
+head(ga_data)
+```
+
+```{r data-pull-display, echo=FALSE, message=FALSE, warnings=FALSE}
+# Nicer display of the head
+kable(head(ga_data))
+```
+
+# Data Munging
+
+Even though the data frame is ordered as we want it displayed, we still need to convert **medium** to a factor (with the levels in a reversed order) in order for the bar chart to be ordered from largest to smallest.
+
+```{r data-munging, message=FALSE, warnings=FALSE}
+# Convert the medium to a factor so they will be ordered when plotted
+ga_data$medium <- factor(ga_data$medium,
+                         levels = rev(ga_data$medium))
+```
+
+# Data Visualization
+
+This won't be the prettiest bar chart, but let's make a horizontal bar chart with the data. Remember, in **ggplot2**, a horizontal bar chart is just a normal bar chart with `coord_flip()`.
+
+```{r visualize, message=FALSE, warnings=FALSE}
+
+# Create the plot. Note the stat="identity"" (because the data is already aggregated) and
+# the coord_flip(). And, I just can't stand it... added on the additional theme stuff to
+# clean up the plot a bit more.
+gg <- ggplot(ga_data, mapping = aes(x = medium, y = sessions)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  theme_light() +
+  theme(panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.border = element_blank(),
+        axis.title.y = element_blank(),
+        axis.ticks.y = element_blank())
+
+# Output the plot. You *could* just remove the "gg <-" in the code above, but it's
+# generally a best practice to create a plot object and then output it, rather than
+# outputting it on the fly.
+gg
+
+```

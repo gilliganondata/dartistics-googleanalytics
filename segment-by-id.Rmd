@@ -1,0 +1,105 @@
+---
+title: "Apply Segment by Segment ID"
+---
+
+This example pulls the top 10 pages for the last thirty days, _for visits that occurred on a mobile device_. We'll doing this by referencing the standard **Mobile Segment** in Google Analytics, but the process is exactly the same for referencing a custom segment that you built. The example explains that in the comments in the code. This returns the exact same results as these two examples, but through different means for defining/referencing the segment:
+
+* **[Simple Dynamic Segment - v4](simple-dynamic-segment.html)** -- defining the segment using the v4 API syntax (which is super-cumbersome for a super simple segment like this one, but illustrative nonetheless)
+* **[Simple Dynamic Segment - v3](simple-dynamic-segment-v3.html)** -- Ahhhhh! The days when dynamic segments were so much simpler (but also less powerful)
+
+All three approaches are perfectly acceptable. This example, though, relies on the segment being available through the Google Analytics web interface -- as a standard segment or a custom segment. 
+
+# Setup/Config
+
+```{r child='includes/z_setup.Rmd'}
+```
+
+# Pull the Data
+
+The key step here is figuring out the ID of the segment that you want to use. One option -- once you've loaded `googleAnalyticsR` and `tidyverse` and run `ga_auth()` -- is to create a data frame with _all_ your segments in it. Simply dropping this command in the console will create a `segs` data frame that will list all of them. That can be a mighty long list:
+
+```segs <- as.data.frame(ga_segment_list()) %>% select(items.segmentId, items.name, items.type)```
+
+Alternatively, you can just hop over to the [Google Analytics Query Explorer](https://ga-dev-tools.appspot.com/query-explorer/), choose a segment in the **segment** field, and then copy the value (you have to have the **Show segment definitions instead of IDs** checkbox _unchecked_ to get the ID).
+
+```{r data-pull, message=FALSE, warnings=FALSE, results='hide'}
+
+# Create the segment object. See ?segment_ga4() for details. Note that the name -- the first
+# argument -- is actually moot here. When you use the segment_id argument, what will actually
+# get used as the name of the segment is, well, the name of the segment in the web interface.
+# To illustrate, even though I've put "Mobile Sessions Only" in the name argument for this
+# function, the output below actually uses the name "Mobile Traffic."
+my_segment <- segment_ga4("Mobile Sessions Only",
+                                 segment_id = "gaid::-14")
+
+# Pull the data. See ?google_analytics_4() for additional parameters. Depending on what
+# you're expecting back, you probably would want to use an "order" argument to get the
+# results in descending order. But, we're keeping this example simple. Note, though, that
+# we're still wrapping my_segment in a list() (of one element).
+ga_data <- google_analytics_4(viewId = view_id,
+                              date_range = c(start_date, end_date),
+                              metrics = "pageviews",
+                              dimensions = "pagePath",
+                              segments = my_segment)
+
+# Go ahead and do a quick inspection of the data that was returned. This isn't required,
+# but it's a good check along the way.
+head(ga_data)
+
+```
+
+```{r data-pull-display, echo=FALSE, message=FALSE, warnings=FALSE}
+# Nicer display of the head
+kable(head(ga_data))
+```
+
+# Data Munging
+
+Since we didn't sort the data when we queried it, let's go ahead and sort it here _and_ grab just the top 10 pages.
+
+```{r munging, message=FALSE, warnings=FALSE, results='hide'}
+
+# Using dplyr, sort descending and then grab the top 10 values. We also need to make the
+# page column a factor so that the order will be what we want when we chart the data.
+# This is a nuisance, but you get used to it. That's what the mutate function is doing
+ga_data_top_10 <- ga_data %>%
+  arrange(-pageviews) %>% 
+  top_n(10) %>% 
+  mutate(pagePath = factor(pagePath,
+                           levels = rev(pagePath)))
+
+# Take a quick look at the result.
+head(ga_data_top_10)
+  
+```
+
+```{r munge-display, echo=FALSE, message=FALSE, warnings=FALSE}
+# Nicer display of the head
+kable(head(ga_data_top_10))
+```
+
+# Data Visualization
+
+This won't be the prettiest bar chart, but let's make a horizontal bar chart with the data. Remember, in **ggplot2**, a horizontal bar chart is just a normal bar chart with `coord_flip()`.
+
+```{r visualize, message=FALSE, warnings=FALSE}
+
+# Create the plot. Note the stat="identity"" (because the data is already aggregated) and
+# the coord_flip(). And, I just can't stand it... added on the additional theme stuff to
+# clean up the plot a bit more.
+gg <- ggplot(ga_data_top_10, mapping = aes(x = pagePath, y = pageviews)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  theme_light() +
+  theme(panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.border = element_blank(),
+        axis.title.y = element_blank(),
+        axis.ticks.y = element_blank())
+
+# Output the plot. You *could* just remove the "gg <-" in the code above, but it's
+# generally a best practice to create a plot object and then output it, rather than
+# outputting it on the fly.
+gg
+
+```

@@ -1,0 +1,102 @@
+---
+title: "Simple Dynamic Segment - v3"
+---
+
+This example pulls the top 10 pages for the last thirty days, _for visits that occurred on a mobile device_. We'll doing this by defining a _dynamic segment_ using the v3 (older) version of the Google Analytics API. This returns the exact same results as these two examples, but through different means for defining/referencing the segment:
+
+* **[Simple Dynamic Segment - v4](simple-dynamic-segment.html)** -- defining the segment using the v4 API syntax (which is super-cumbersome for a super simple segment like this one, but illustrative nonetheless)
+* **[Apply Segment by Segment ID](segment-by-id.html)** -- simply using the ID of either a standard segment or a custom segment built in the Google Analytics web interface
+
+All three approaches are perfectly acceptable.  
+
+# Setup/Config
+
+```{r child='includes/z_setup.Rmd'}
+```
+
+# Pull the Data
+
+The trick to this is that we actually pass the [v3 dynamic segment definition](https://developers.google.com/analytics/devguides/reporting/core/v3/segments#dynamic) into the `segment_id` argument for `segment_ga4()`. It's not super-intuitive, because we're passing the _actual segment definition_ rather than an "id"... but when cramming v3 stuff into a v4 world, we've got to be a little forgiving, no?
+
+```{r data-pull, message=FALSE, warnings=FALSE, results='hide'}
+
+# For code readability, create a separate object with the segment definition.
+mobile_segment_v3 <- "sessions::condition::ga:deviceCategory==Mobile"
+
+# Create the segment object. See ?segment_ga4() for details. Note that, it doesn't
+# really matter what we put for the name argument -- because this is pulling a v3
+# dynamic segment, the name that appears in the output is just "Dynamic Segment."
+my_segment <- segment_ga4("Mobile Sessions Only",
+                          segment_id = mobile_segment_v3)
+
+# Pull the data. See ?google_analytics_4() for additional parameters. Depending on what
+# you're expecting back, you probably would want to use an "order" argument to get the
+# results in descending order. But, we're keeping this example simple. Note, though, that
+# we're still wrapping my_segment in a list() (of one element).
+ga_data <- google_analytics_4(viewId = view_id,
+                              date_range = c(start_date, end_date),
+                              metrics = "pageviews",
+                              dimensions = "pagePath",
+                              segments = my_segment)
+
+# Go ahead and do a quick inspection of the data that was returned. This isn't required,
+# but it's a good check along the way.
+head(ga_data)
+
+```
+
+```{r data-pull-display, echo=FALSE, message=FALSE, warnings=FALSE}
+# Nicer display of the head
+kable(head(ga_data))
+```
+
+# Data Munging
+
+Since we didn't sort the data when we queried it, let's go ahead and sort it here _and_ grab just the top 10 pages.
+
+```{r munging, message=FALSE, warnings=FALSE, results='hide'}
+
+# Using dplyr, sort descending and then grab the top 10 values. We also need to make the
+# page column a factor so that the order will be what we want when we chart the data.
+# This is a nuisance, but you get used to it. That's what the mutate function is doing
+ga_data_top_10 <- ga_data %>%
+  arrange(-pageviews) %>% 
+  top_n(10) %>% 
+  mutate(pagePath = factor(pagePath,
+                           levels = rev(pagePath)))
+
+# Take a quick look at the result.
+head(ga_data_top_10)
+  
+```
+
+```{r munge-display, echo=FALSE, message=FALSE, warnings=FALSE}
+# Nicer display of the head
+kable(head(ga_data_top_10))
+```
+
+# Data Visualization
+
+This won't be the prettiest bar chart, but let's make a horizontal bar chart with the data. Remember, in **ggplot2**, a horizontal bar chart is just a normal bar chart with `coord_flip()`.
+
+```{r visualize, message=FALSE, warnings=FALSE}
+
+# Create the plot. Note the stat="identity"" (because the data is already aggregated) and
+# the coord_flip(). And, I just can't stand it... added on the additional theme stuff to
+# clean up the plot a bit more.
+gg <- ggplot(ga_data_top_10, mapping = aes(x = pagePath, y = pageviews)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  theme_light() +
+  theme(panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.border = element_blank(),
+        axis.title.y = element_blank(),
+        axis.ticks.y = element_blank())
+
+# Output the plot. You *could* just remove the "gg <-" in the code above, but it's
+# generally a best practice to create a plot object and then output it, rather than
+# outputting it on the fly.
+gg
+
+```

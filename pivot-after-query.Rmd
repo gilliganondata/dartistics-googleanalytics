@@ -1,0 +1,82 @@
+---
+title: "Pivoting Data (after Querying)"
+---
+
+This example pulls sessions by **device category** and **medium** and then displays them in a pivoted fashion. This is the highly attractive cousin of the [pivot in the query itself](pivot-in-query.html) example.
+
+# Setup/Config
+
+```{r child='includes/z_setup.Rmd'}
+```
+
+# Pull the Data
+
+This is a simple query with just two dimensions and one metric. 
+
+```{r data-pull, message=FALSE, warnings=FALSE, results='hide'}
+
+# Pull the data. See ?google_analytics_4() for additional parameters. The anti_sample = TRUE
+# parameter will slow the query down a smidge and isn't strictly necessary, but it will
+# ensure you do not get sampled data.
+ga_data <- google_analytics_4(viewId = view_id,
+                              date_range = c(start_date, end_date),
+                              metrics = "sessions",
+                              dimensions = c("medium","deviceCategory"),
+                              anti_sample = TRUE)
+
+# Go ahead and do a quick inspection of the data that was returned. This isn't required,
+# but it's a good check along the way.
+head(ga_data)
+```
+
+```{r data-pull-display, echo=FALSE, message=FALSE, warnings=FALSE}
+# Nicer display of the head
+kable(head(ga_data))
+```
+
+# Data Munging
+
+We actually don't need to do any data munging to prep for the data visualization, as the data is already in a nice, tidy format. But, if you want to pivot the data just to have it in a pivoted data frame, we can do that using the `spread()` function in `dplyr`.
+
+```{r munging, message=FALSE, warnings=FALSE, results='hide'}
+
+# Pivot the data
+ga_data_pivoted <- ga_data %>% 
+  spread(deviceCategory, sessions)
+
+# Check out the result of our handiwork
+head(ga_data_pivoted)
+
+```
+
+```{r munge-display, echo=FALSE, message=FALSE, warnings=FALSE}
+# Nicer display of the head
+kable(head(ga_data_pivoted))
+```
+
+# Data Visualization
+
+Let's make a little heatmap of the data in a pivoted fashion with ggplot. This requires two "geoms" -- `geom_tile()` to make the heatmap (the shaded grid), and then `geom_text()` to actually put the values in the heatmap. **Note:** this uses the `ga_data` data frame that was pulled initially -- _not_ the `ga_data_pivoted` data frame that we created above. This is a subtle illustration of the elegance of the tidyverse, including `ggplot2`. If you appreciate that elegance, you are well on your way to R mastery.
+
+The use of the `format()` function in the `label` argument is a handy little way to get commas displayed in numbers as the 000s separator (which means it's easy to swap out if you're in a locale where that is not the convention).
+
+Note that there is not a logical/appropriate arrangement of the rows and columns, and the formatting is only minimally tweaked. This is one of the things addressed in the [intermediate-level verison of this example](pivot-sparklines-heatmap.html). 
+
+```{r visualization, message=FALSE, warnings=FALSE}
+
+# Create the plot
+gg <- ggplot(ga_data, mapping=aes(x = deviceCategory, y = medium)) +
+  geom_tile(aes(fill = sessions)) +
+  geom_text(aes(label = format(sessions, big.mark = ","))) +
+  scale_fill_gradient(low = "white", high = "green") +
+  theme_light() +
+  theme(panel.grid = element_blank(),
+        panel.border = element_blank(),
+        axis.ticks = element_blank())
+
+# Output the plot. You *could* just remove the "gg <-" in the code above, but it's
+# generally a best practice to create a plot object and then output it, rather than
+# outputting it on the fly.
+gg
+
+```

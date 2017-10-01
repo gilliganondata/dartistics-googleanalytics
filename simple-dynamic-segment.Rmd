@@ -1,0 +1,124 @@
+---
+title: "Simple Dynamic Segment - v4"
+---
+
+This example pulls the top 10 pages for the last thirty days, _for visits that occurred on a mobile device_. For the sake of illustration, we're going to build this segment _dynamically_ rather than referencing a segment ID. Where this can come in handy is if you have a script where you want to work through a range of small little tweaks to one segment and re-pull the data. You don't want to build each segment in the web interface and then hardcode all those IDs! We may add an example for doing that later, but we're doing to keep this very simple for now.
+
+This returns the exact same results as these two examples, but through different means for defining/referencing the segment:
+
+* **[Simple Dynamic Segment - v3](simple-dynamic-segment-v3.html)** -- Ahhhhh! The days when dynamic segments were so much simpler (but also less powerful)
+* **[Apply Segment by Segment ID](segment-by-id.html)** -- simply using the ID of either a standard segment or a custom segment built in the Google Analytics web interface
+
+With the v4 API, dynamic segments are more powerful than v3, but (alas!) pretty basic segments can feel pretty convoluted. 
+
+# Setup/Config
+
+```{r child='includes/z_setup.Rmd'}
+```
+
+# Pull the Data
+
+This all gets built up in what can feel very cumbersome. Check out `?segment_ga4()` for the documentation of how the segment gets built. Correctly, it describes this as a "hierarchy." In practical terms, though, we build from the bottom up:
+
+1. Define a _segment element_ using `segment_element()`. This is just a single conditional statement.
+2. Combine one or more segment elements together into a _segment vector_ using `segment_vector_simple()`. There are a few options here, but we're going to stick with the simple approach. And, it's still going to feel redundant, because we're only including a single segment element.
+3. Combine one or more _segment vectors_ into a _segment definition_ using `segment_define()`. This may feel like it's the same as the previous step, but, if you think about the segment builder in the web interface, it will start to make sense -- there are two levels at which can combine multiple "things" together to define a segment. Alas! Here, again, we're just including a single segment vector, so it all feels really cumbersome.
+4. Put _that_ into a _segment object_, which is what we're actually going to use in the data. We actually give the segment a name here that will be returned in the results.
+5. Actually pull the data, passing in the _segment object_ as an argument.
+
+In addition to the "hierarchy" messiness for a simple segment, there is also some `list()` messiness. Note, for instance, how `my_segment_vector` in the example code includes a list within a list. Use this example (and other examples on this site) as well as the `?segment_ga4()` documentation to troubleshoot.
+
+```{r data-pull, message=FALSE, warnings=FALSE, results='hide'}
+
+# Create a segment element object. See ?segment_element() for details.
+my_segment_element <- segment_element("deviceCategory", 
+                                   operator = "EXACT",
+                                   type = "DIMENSION",
+                                   expressions = "Mobile")
+
+# Create a segment vector that has just one element. See ?segment_vector_simple() for details. Note
+# that the element is wrapped in a list(). This is how you would include multiple elements in the
+# definition.
+my_segment_vector <- segment_vector_simple(list(list(my_segment_element)))
+
+# Define the segment with just the one segment vector in it. See ?segment_define() for details.
+my_segment_definition <- segment_define(list(my_segment_vector))
+
+# Create the actual segment object that we're going to use in the query. See ?segment_ga4()
+# for details.
+my_segment <- segment_ga4("Mobile Sessions Only",
+                                 session_segment = my_segment_definition)
+
+# <whew>!!!
+
+# Pull the data. See ?google_analytics_4() for additional parameters. Depending on what
+# you're expecting back, you probably would want to use an "order" argument to get the
+# results in descending order. But, we're keeping this example simple. Note, though, that
+# we're still wrapping my_segment in a list() (of one element).
+ga_data <- google_analytics_4(viewId = view_id,
+                              date_range = c(start_date, end_date),
+                              metrics = "pageviews",
+                              dimensions = "pagePath",
+                              segments = my_segment)
+
+# Go ahead and do a quick inspection of the data that was returned. This isn't required,
+# but it's a good check along the way. 
+head(ga_data)
+
+```
+
+```{r data-pull-display, echo=FALSE, message=FALSE, warnings=FALSE}
+# Nicer display of the head
+kable(head(ga_data))
+```
+
+# Data Munging
+
+Since we didn't sort the data when we queried it, let's go ahead and sort it here _and_ grab just the top 10 pages.
+
+```{r munging, message=FALSE, warnings=FALSE, results='hide'}
+
+# Using dplyr, sort descending and then grab the top 10 values. We also need to make the
+# page column a factor so that the order will be what we want when we chart the data.
+# This is a nuisance, but you get used to it. That's what the mutate functio is doing
+ga_data_top_10 <- ga_data %>%
+  arrange(-pageviews) %>% 
+  top_n(10) %>% 
+  mutate(pagePath = factor(pagePath,
+                           levels = rev(pagePath)))
+
+# Take a quick look at the result. 
+head(ga_data_top_10)
+  
+```
+
+```{r munge-display, echo=FALSE, message=FALSE, warnings=FALSE}
+# Nicer display of the head
+kable(head(ga_data_top_10))
+```
+
+# Data Visualization
+
+This won't be the prettiest bar chart, but let's make a horizontal bar chart with the data. Remember, in **ggplot2**, a horizontal bar chart is just a normal bar chart with `coord_flip()`.
+
+```{r visualize, message=FALSE, warnings=FALSE}
+
+# Create the plot. Note the stat="identity"" (because the data is already aggregated) and
+# the coord_flip(). And, I just can't stand it... added on the additional theme stuff to
+# clean up the plot a bit more.
+gg <- ggplot(ga_data_top_10, mapping = aes(x = pagePath, y = pageviews)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  theme_light() +
+  theme(panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.border = element_blank(),
+        axis.title.y = element_blank(),
+        axis.ticks.y = element_blank())
+
+# Output the plot. You *could* just remove the "gg <-" in the code above, but it's
+# generally a best practice to create a plot object and then output it, rather than
+# outputting it on the fly.
+gg
+
+```

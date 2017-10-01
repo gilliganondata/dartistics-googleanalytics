@@ -1,0 +1,33 @@
+---
+title: "Overview"
+---
+
+This site is intended to provide a (hopefully growing) list of standalone examples of using Google Analytics with R. The target user is, primarily, analysts who are using Google Analytics and starting to dip their toe into the R waters and, along the way, are wishing they had some standalone examples that they can quickly get to work, after which they can then start tinkering with it.
+
+**This site is not a tutorial on how to use R. There IS a great site for that, though -- the [parent site](http://dartistics.com) of this site!**
+
+# Key Tenets of the Site
+These are partly to drive consistency ("Once I've gotten one example to work, I can _totally_ get any of these examples to work."), but also, admittedly, are also partly driven by the personal preferences of the site owner:
+
+* All pulling of Google Analytics data uses Mark Edmondson's [googleAnalyticsR](http://code.markedmondson.me/googleAnalyticsR/) package
+* The examples expect that the steps on the [Initial Setup](setup.html) page have been followed/completed
+* Each example is _standalone_ -- all of the code needed is included in the example
+* Each example follows the same basic structure (see below)
+* All visualizations use [ggplot2](http://ggplot2.tidyverse.org/reference/)
+
+# Example Structure
+Unless it just makes no sense, each example follows the same structure:
+
+1. *Setup/Config* -- loading of packages, configurable variables, authorization of Google Analytics; this is pretty redundant across many of the examples, but it's required to make each page a standalone example
+2. *Data Pulling* -- the actual call(s) to pull in Google Analytics Data
+3. *Data Munging* -- manipulation of the data as warranted
+4. *Data Visualization* -- one visualization of the resulting data
+
+# Initial Setup
+The steps listed on the [Initial Setup](setup.html) page are *required* in order for the example code to work. Don't skip that!
+
+# Using the Code
+Each page has blocks of code that are shaded gray. If you copy each of the blocks of code -- one after the other -- into an R script, the example should then run.
+
+# Making Requests or Reporting Bugs
+To request an example or report an issue with one of the existing examples, log an issue on the [Github repository for this site](https://github.com/gilliganondata/dartistics-googleanalytics/issues).

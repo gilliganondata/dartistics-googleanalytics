@@ -1,0 +1,59 @@
+---
+title: "Initial Setup"
+---
+
+The steps below are a one-time setup, but they must be followed for the examples on this site to work.
+
+# Create a Google Project
+Follow the steps in this video from Donal Phipps:
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/4B88dRbwNfc" frameborder="0" allowfullscreen></iframe>
+
+We're not going to enter the client ID and client secret directly in any of these examples, but, rather, store them in the `.Renviron` file, which is detailed below. It's fine if you made the full bit of code as Donal described it in the video, but know that you will need to copy the `client_id` and `client_secret` into another file as detailed below.
+
+# Create a .Renviron file
+This is a file that loads when an R session gets initiated. There are various options for managing this exactly, but below describes an approach that is inarguably the *BEST* approach!*
+
+## 1. Create a .Renviron file in your Home Directory
+Find your *Home* directory by clicking on the *Home* button in the *Files* pane of RStudio. Then, simply create a new text file (**File > New File > Text File**) and save it as *.Renviron*. You might get a warning about how this will be a hidden file, but just ignore the warning. Live life on the edge!
+
+## 2. Populate the .Renviron file
+The examples expect three variables to be in the *.Renviron* file. You're welcome to add other variables, and, over time, should have a quite robust file. But, we only need three. The file should look something like this:
+
+```
+GA_CLIENT_ID = "XXXXXXXXXXXXX-XXXXXXXXXXXXX-XXXXXXXXXXX.apps.googleusercontent.com"
+GA_CLIENT_SECRET = "XXXXXXXXXXXXXXXXXXXXX"
+GA_EXAMPLE_VIEW_ID = "ga:XXXXXXXXXX"
+```
+No, silly, you don't want a bunch of Xs there! You will need to update those with values that are unique to your environment:
+
+* **GA_CLIENT_ID** -- this is just the client ID from the Google Project you created following Donal's instructions
+* **GA_CLIENT_SECRET** -- it's not secret to you! This is just the client secret you created at the same time you created the client ID
+* **GA_EXAMPLE_VIEW_ID** -- this is the view ID that you want to use (at least initially) for exploring the examples. You can go to the [Google Analytics Query Explorer](https://ga-dev-tools.appspot.com/query-explorer/), select an account, property, and view, and then grab this value -- it's the `ids` value that is the first field under the *Query Parameters* section
+
+Now, save the file.
+
+## 3. Reload the .Renviron file
+This happens any time you start a new R session, so you won't have to worry about this going forward unless you change a value (like the *GA_EXAMPLE_VIEW_ID*). For this one time, though, select *Session > Restart R* in RStudio.
+
+## 4. Confirm that your .Renviron file is working
+Run the following code in your console:
+
+```
+client_id <- Sys.getenv("GA_CLIENT_ID")
+```
+
+Now, check the **Environment** pane in RStudio. You should see an object called `client_id` with the client ID for your Google Project. You can run this for the other two values, too, but let's just assume that, if it worked for one, you're all set.
+
+# Install the Primary Packages We'll Use
+
+Some examples will use other packages, but that will be called out in the example itself. Almost all of the examples use the `googleAnalyticsR` and various packages in the Tidyverse, so run the code below in your console just to get those installed in the event that they are not:
+
+```
+packages <- c("googleAnalyticsR", "tidyverse", "devtools")
+if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
+  install.packages(setdiff(packages, rownames(installed.packages())))  
+}
+```
+
+You should be all set! The examples should all work!

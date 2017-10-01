@@ -1,0 +1,115 @@
+---
+title: "Simple Dimension Filter"
+---
+
+This example pulls the top 10 pages for the last thirty days, _for pages that have "adobe" in the page name_.* With the v4 API, filters are more powerful than v3, but (alas!) very basic filters can feel pretty convoluted. 
+
+# Setup/Config
+
+```{r child='includes/z_setup.Rmd'}
+```
+
+# Pull the Data
+
+There are two main parts to this:
+
+1. Creating the dimension filter
+2. Pulling the data while using that filter
+
+Creating the dimension filter can feel convoluted. Or, at least, it can feel redundant. This is recognized -- it's the way the API is built and, for now, adding helper functions for "simple" filters would just add more confusion. Creating v4 dimension filters is a three-step process:
+
+1. Create a "filter object" using the `dim_filter()` function. This is, essentially, "one condition" if you were building a filter in the web interface. You _can_ have multiple filter objects, but, in this example, we're only going to create one. 
+2. Create a "filter _clause_" using the `filter_clause_ga4()` function. This bundles together one or more filter objects. In this example, it's going to be a 1-object bundle, which makes the code look a little funny.
+3. Actually use the filter clause in the `google_analytics_4()` query.
+
+```{r data-pull, message=FALSE, warnings=FALSE, results='hide'}
+
+# Create a dimension filter object. See ?dim_filter() for details. We're using a 
+# regular expression here (REGEXP) but also could have used a "partial" match (PARTIAL).
+# You should be using regEx in general. It's cleaner. And, the more comfortable you are
+# with it, the easier it will be to use when you have more complex needs. </soapbox>
+my_dim_filter_object <- dim_filter("pagePath", 
+                                   operator = "REGEXP",
+                                   expressions = ".*adobe.*")
+
+# Now, put that filter object into a filter clause. If you had multiple filters, there
+# are two aspects of this that wouldn't seem so weird. With one... they do seem weird:
+# 1. The "filters" argument takes a list. So, you have to put your filter object in a
+#    list. It's a one-element list.
+# 2. The "operator" argument is moot -- it can be AND or OR...but you have to have
+#    it be something, even though it doesn't do anything.
+my_dim_filter_clause <- filter_clause_ga4(list(my_dim_filter_object),
+                                          operator = "AND")
+
+# Pull the data. See ?google_analytics_4() for additional parameters. Depending on what
+# you're expecting back, you probably would want to use an "order" argument to get the
+# results in descending order. But, we're keeping this example simple.
+ga_data <- google_analytics_4(viewId = view_id,
+                              date_range = c(start_date, end_date),
+                              metrics = "pageviews",
+                              dimensions = "pagePath",
+                              dim_filters = my_dim_filter_clause)
+
+# Go ahead and do a quick inspection of the data that was returned. This isn't required,
+# but it's a good check along the way.
+head(ga_data)
+
+```
+
+```{r data-pull-display, echo=FALSE, message=FALSE, warnings=FALSE}
+# Nicer display of the head
+kable(head(ga_data))
+```
+
+# Data Munging
+
+Since we didn't sort the data when we queried it, let's go ahead and sort it here _and_ grab just the top 10 pages.
+
+```{r munging, message=FALSE, warnings=FALSE, results='hide'}
+
+# Using dplyr, sort descending and then grab the top 10 values. We also need to make the
+# page column a factor so that the order will be what we want when we chart the data.
+# This is a nuisance, but you get used to it. That's what the mutate function is doing
+ga_data_top_10 <- ga_data %>%
+  arrange(-pageviews) %>% 
+  top_n(10) %>% 
+  mutate(pagePath = factor(pagePath,
+                           levels = rev(pagePath)))
+
+# Take a quick look at the result.
+head(ga_data_top_10)
+  
+```
+
+```{r munge-display, echo=FALSE, message=FALSE, warnings=FALSE}
+# Nicer display of the head
+kable(head(ga_data_top_10))
+```
+
+# Data Visualization
+
+This won't be the prettiest bar chart, but let's make a horizontal bar chart with the data. Remember, in **ggplot2**, a horizontal bar chart is just a normal bar chart with `coord_flip()`.
+
+```{r visualize, message=FALSE, warnings=FALSE}
+
+# Create the plot. Note the stat="identity"" (because the data is already aggregated) and
+# the coord_flip(). And, I just can't stand it... added on the additional theme stuff to
+# clean up the plot a bit more.
+gg <- ggplot(ga_data_top_10, mapping = aes(x = pagePath, y = pageviews)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  theme_light() +
+  theme(panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.border = element_blank(),
+        axis.title.y = element_blank(),
+        axis.ticks.y = element_blank())
+
+# Output the plot. You *could* just remove the "gg <-" in the code above, but it's
+# generally a best practice to create a plot object and then output it, rather than
+# outputting it on the fly.
+gg
+
+```
+
+_* Yes. This is intentionally ironic._
