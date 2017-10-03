@@ -36,7 +36,7 @@ kable(head(ga_data))
 
 # Data Munging
 
-We actually don't need to do any data munging to prep for the data visualization, as the data is already in a nice, tidy format. But, if you want to pivot the data just to have it in a pivoted data frame, we can do that using the `spread()` function in `dplyr`.
+To pivot the data, we can use the `spread()` function in `dplyr`. This will give us pivoted data in a data frame.
 
 ```{r munging, message=FALSE, warnings=FALSE, results='hide'}
 
@@ -56,11 +56,13 @@ kable(head(ga_data_pivoted))
 
 # Data Visualization
 
-Let's make a little heatmap of the data in a pivoted fashion with ggplot. This requires two "geoms" -- `geom_tile()` to make the heatmap (the shaded grid), and then `geom_text()` to actually put the values in the heatmap. **Note:** this uses the `ga_data` data frame that was pulled initially -- _not_ the `ga_data_pivoted` data frame that we created above. This is a subtle illustration of the elegance of the tidyverse, including `ggplot2`. If you appreciate that elegance, you are well on your way to R mastery.
+If we wanted a pivoted "visualization" -- not just a data frame -- then we actually can just use `ggplot2` with the _unpivoted_ data.
+
+To spice things up just a bit, let's make a little heatmap of the data (in a "pivoted" layout). This requires two "geoms" -- `geom_tile()` to make the heatmap (the shaded grid), and then `geom_text()` to actually put the values in the heatmap. **Note:** this uses the `ga_data` data frame that was pulled initially -- _not_ the `ga_data_pivoted` data frame that we created above. This is a subtle illustration of the elegance of the tidyverse, including `ggplot2`. If you appreciate that elegance, you are well on your way to R mastery.
 
 The use of the `format()` function in the `label` argument is a handy little way to get commas displayed in numbers as the 000s separator (which means it's easy to swap out if you're in a locale where that is not the convention).
 
-Note that there is not a logical/appropriate arrangement of the rows and columns, and the formatting is only minimally tweaked. This is one of the things addressed in the [intermediate-level verison of this example](pivot-sparklines-heatmap.html). 
+Note that there is not a logical/appropriate arrangement of the rows and columns, and the formatting is only minimally tweaked. This is one of the things addressed in the [intermediate-level version of this example](pivot-sparklines-heatmap.html). 
 
 ```{r visualization, message=FALSE, warnings=FALSE}
 
