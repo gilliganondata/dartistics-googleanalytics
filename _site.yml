@@ -9,8 +9,8 @@ navbar:
       href: setup.html
     - text: "Basic Examples"
       menu:
-       - text: "Trended Sessions by Medium"
-         href: simple-trended-sessions-by-medium.html
+       - text: "Trended Sessions by Device Category"
+         href: simple-trended-sessions-by-devicecategory.html
        - text: "Simple Dimension Filter"
          href: simple-dim-filter.html
        - text: "Medium Ordered by Sessions"
@@ -19,6 +19,8 @@ navbar:
          href: segment-by-id.html
        - text: "Pivot in a Query"
          href: pivot-in-query.html
+       - text: "Pivot After a Query"
+         href: pivot-after-query.html
     - text: "Intermediate Examples"
       menu:
        - text: "2D Sparklines/Heatmap"

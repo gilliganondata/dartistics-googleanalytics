@@ -2,7 +2,7 @@
 title: "Simple Dimension Filter"
 ---
 
-This example pulls the top 10 pages for the last thirty days, _for pages that have "adobe" in the page name_.* With the v4 API, filters are more powerful than v3, but (alas!) very basic filters can feel pretty convoluted. 
+This example pulls the top 10 pages for the last thirty days, _for pages that have "excel" in the page name_.* With the v4 API, filters are more powerful than v3, but (alas!) very basic filters can feel pretty convoluted. 
 
 # Setup/Config
 
@@ -30,7 +30,7 @@ Creating the dimension filter can feel convoluted. Or, at least, it can feel red
 # with it, the easier it will be to use when you have more complex needs. </soapbox>
 my_dim_filter_object <- dim_filter("pagePath", 
                                    operator = "REGEXP",
-                                   expressions = ".*adobe.*")
+                                   expressions = ".*excel.*")
 
 # Now, put that filter object into a filter clause. If you had multiple filters, there
 # are two aspects of this that wouldn't seem so weird. With one... they do seem weird:

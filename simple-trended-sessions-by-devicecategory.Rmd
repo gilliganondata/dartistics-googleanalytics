@@ -1,8 +1,8 @@
 ---
-title: "Traffic by Medium"
+title: "Traffic by Device Category"
 ---
 
-This example pulls *sessions* and by *medium* for the last 30 days and then plots the data on a line chart.
+This example pulls **sessions** and by **device category** for the last 30 days and then plots the data on a line chart.
 
 # Setup/Config
 
@@ -20,7 +20,7 @@ This is a simple query.
 ga_data <- google_analytics_4(viewId = view_id,
                               date_range = c(start_date, end_date),
                               metrics = "sessions",
-                              dimensions = c("date","medium"),
+                              dimensions = c("date","deviceCategory"),
                               anti_sample = TRUE)
 
 # Go ahead and do a quick inspection of the data that was returned. This isn't required,
@@ -44,7 +44,7 @@ This won't be the prettiest plot, but this example isn't diving into the details
 ```{r visualize, message=FALSE, warnings=FALSE}
 
 # Create the plot.
-gg <- ggplot(ga_data, mapping = aes(x = date, y = sessions, colour = medium)) +
+gg <- ggplot(ga_data, mapping = aes(x = date, y = sessions, colour = deviceCategory)) +
   geom_line() +
   theme_light()
 
