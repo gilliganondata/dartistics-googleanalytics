@@ -1,0 +1,180 @@
+---
+title: "Multiple Dynamic Segments (v4)"
+---
+
+This example pulls three sets of data: the top 10 pages for the last thirty days on mobile, tablet, and desktop. This is, essentially, an extension of the [Simple Dynamic Segment - v4](simple-dynamic-segment.html) example _except_ it uses a function to pull the data so that a list of values ("Mobile," "Tablet", and "Desktop") can be processed to dynamically change the segment used to pull the data.
+
+With the v4 API, dynamic segments are more powerful than v3, but (alas!) pretty basic segments can feel pretty convoluted. This example could also be built for v3, but we want to _go forward_! And, v4 is the future!
+
+# Setup/Config
+
+```{r child='includes/z_setup.Rmd'}
+```
+
+# Pull the Data
+
+There are two main aspects of the data pulling:
+
+* The setup of the segment and ultimate GA query _inside a function_ that has a `deviceCategory` value as an argument and then constructs the segment accordingly
+* The application of that function to a _list_ using `map()`
+
+Both of these aspects are embodied in the code below, but we're going to do a bit of exposition before we get to that.
+
+## Setting up the Segment
+
+This all gets built up in what can feel very cumbersome. Check out `?segment_ga4()` for the documentation of how the segment gets built. Correctly, it describes this as a "hierarchy." In practical terms, though, we build from the bottom up:
+
+1. Define a **segment element** using `segment_element()`. This is just a single conditional statement.
+2. Combine one or more segment elements together into a **segment vector** using `segment_vector_simple()`. There are a few options here, but we're going to stick with the simple approach. And, it's still going to feel redundant, because we're only including a single segment element.
+3. Combine one or more **segment vectors** into a **segment definition** using `segment_define()`. This may feel like it's the same as the previous step, but, if you think about the segment builder in the web interface, it will start to make sense -- there are two levels at which can combine multiple "things" together to define a segment. Alas! Here, again, we're just including a single segment vector, so it all feels really cumbersome.
+4. Put **that** into a **segment object**, which is what we're actually going to use in the data. We actually give the segment a name here that will be returned in the results.
+5. Actually pull the data, passing in the **segment object** as an argument.
+
+In addition to the "hierarchy" messiness for a simple segment, there is also some `list()` messiness. Note, for instance, how `my_segment_vector` in the example code includes a list within a list. Use this example (and other examples on this site) as well as the `?segment_ga4()` documentation to troubleshoot.
+
+## Processing the List
+
+As Mark Edmondson says, "If you're going to use R effectively, you're going to have to learn to love lists." There are a couple of things to note about how we're using lists in this code:
+
+1. We set up a vector with the three different `deviceCategory` values. To get even more advanced, we could actually have one query that pulls all of the values for `deviceCategory` (or some other dimension) and then use the results of that category to get the list of values we actually want to process. Minds start to get blown at that point (but it's a very practical application!).
+2. We use `map()` (which is from the `purrr` package in the Tidyverse) to call our function for each of those values. This will return a list of data frames -- one data frame for each device category. We'll then process that list for our data visualization(s)!
+
+Now...onto the code!
+
+## The Data Pulling Code
+
+```{r data-pull, message=FALSE, warning=FALSE, results='hide'}
+
+#############
+# Create a function that takes in a device category value, builds a dynamic segment using that
+# value, and then queries the data.
+#############
+
+get_data <- function(device_category){
+  
+  # Build the segment name
+  my_segment_name <- paste(device_category,"Sessions")
+  
+  # Create a segment element object. See ?segment_element() for details.
+  my_segment_element <- segment_element("deviceCategory", 
+                                        operator = "EXACT",
+                                        type = "DIMENSION",
+                                        expressions = device_category) # The value passed to the function
+  
+  # Create a segment vector that has just one element. See ?segment_vector_simple() for details. Note
+  # that the element is wrapped in a list(). This is how you would include multiple elements in the
+  # definition.
+  my_segment_vector <- segment_vector_simple(list(list(my_segment_element)))
+  
+  # Define the segment with just the one segment vector in it. See ?segment_define() for details.
+  my_segment_definition <- segment_define(list(my_segment_vector))
+  
+  # Create the actual segment object that we're going to use in the query. See ?segment_ga4()
+  # for details.
+  my_segment <- segment_ga4(my_segment_name,          # We built this at the beginning of the function
+                            session_segment = my_segment_definition)
+
+  # <whew>!!!
+  
+  # We're only going to return the top 10 values, so we need to order the results in descending order.
+  # This *could* be defined outside the function, but, for readability, we're putting it here.
+  results_order <- order_type("pageviews",
+                              sort_order = "DESCENDING",
+                              orderType = "VALUE")
+  
+  # Pull the data. See ?google_analytics_4() for additional parameters.
+  ga_data <- google_analytics_4(viewId = view_id,
+                                date_range = c(start_date, end_date),
+                                metrics = "pageviews",
+                                dimensions = "pagePath",
+                                order = results_order,
+                                segments = my_segment,
+                                max = 10)
+  
+  # Go ahead and print to the console that this step has been completed. This is useful both
+  # for debugging, as well as to be able to track progress as the script is running.
+  cat("Completed pulling data for:", device_category, "\n")
+  
+  # The function will return the last value set, so repeat ga_data to ensure that happens
+  ga_data
+  
+}
+
+#############
+# Put that function to use!
+#############
+
+# Define the list of values to be processed
+device_categories <- c("Mobile", "Tablet", "Desktop") 
+
+# And then process it! It's an innocuous little line of code, but it's where the magic happens!
+page_data <- map(device_categories, get_data) 
+
+# The above returns a list of three data frames -- one for each device category. For our data
+# check, we'll just peek at the Mobile values
+head(page_data$Mobile)
+
+```
+
+```{r data-pull-display, echo=FALSE, message=FALSE, warning=FALSE}
+# Nicer display of the head
+kable(head(page_data$Mobile))
+```
+
+# Data Munging
+
+We're actually going to need to convert the `pagePath` values to factors so that each bar chart comes out in descending order. But, to save ourselves from too many list-processing functions, we're going to do that at part of the data visualization.
+
+# Data Visualization
+
+This won't be the prettiest bar chart, but let's make three horizontal bar charts -- one each for each of our three segments. We're going to do some list work again. This time, we'll write a function to perform the data visualization and then run that function for each element (data frame) in our our `page_data` list.
+
+```{r visualize, message=FALSE, warning=FALSE}
+
+#########
+# The function to do some moderate data munging and generate a visualization
+#########
+
+plot_data <- function(df){
+  
+  # Convert the pagePath to be a factor so the bars will be ordered descending by pageviews
+  df$pagePath <- factor(df$pagePath,
+                        levels = rev(df$pagePath))
+  
+  # Grab the segment name to use as the title. It's the same value for every row, so just
+  # use the first row.
+  chart_title <- df$segment[1]
+  
+  # Create the plot. Note the stat="identity"" (because the data is already aggregated) and
+  # the coord_flip(). And, I just can't stand it... added on the additional theme stuff to
+  # clean up the plot a bit more.
+  gg <- ggplot(df, mapping = aes(x = pagePath, y = pageviews)) +
+    geom_bar(stat = "identity") +
+    ggtitle(chart_title) +
+    coord_flip() +
+    theme_light() +
+    theme(panel.grid.major.y = element_blank(),
+          panel.grid.minor.y = element_blank(),
+          panel.border = element_blank(),
+          axis.title.y = element_blank(),
+          axis.ticks.y = element_blank())
+  
+  # Output the plot. You *could* just remove the "gg <-" in the code above, but it's
+  # generally a best practice to create a plot object and then output it, rather than
+  # outputting it on the fly.
+  gg
+}
+
+#########
+# Call the function for each element in page_data
+#########
+
+# The second round of magic!
+final_charts <- map(page_data, plot_data)
+
+# And then output the results. We could jump through a few more hoops to not have the ## stuff
+# show up, but I think we've done enough for now. Don't you?
+final_charts
+```
+
+There you have it! The magic of lists and functions applied to dynamic segments!

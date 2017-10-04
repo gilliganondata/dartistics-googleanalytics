@@ -29,6 +29,10 @@ navbar:
          href: simple-dynamic-segment.html
        - text: "Simple Dynamic Segment - v3"
          href: simple-dynamic-segment-v3.html
+    - text: "Advanced Examples"
+      menu:
+       - text: "Multiple Dynamic Segments"
+         href: adv-multiple-dynamic-segments.html
     - text: "dartistics.com"
       href: http://dartistics.com
 output:
@@ -36,6 +40,7 @@ output:
     theme: flatly
     css: includes/styles.css
     title-prefix: "Google Analytics and R Examples"
+    fig_width: 10
     includes:
       before_body: includes/analytics.html
       after_body: includes/footer.html

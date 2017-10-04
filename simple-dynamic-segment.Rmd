@@ -20,11 +20,11 @@ With the v4 API, dynamic segments are more powerful than v3, but (alas!) pretty 
 
 This all gets built up in what can feel very cumbersome. Check out `?segment_ga4()` for the documentation of how the segment gets built. Correctly, it describes this as a "hierarchy." In practical terms, though, we build from the bottom up:
 
-1. Define a _segment element_ using `segment_element()`. This is just a single conditional statement.
-2. Combine one or more segment elements together into a _segment vector_ using `segment_vector_simple()`. There are a few options here, but we're going to stick with the simple approach. And, it's still going to feel redundant, because we're only including a single segment element.
-3. Combine one or more _segment vectors_ into a _segment definition_ using `segment_define()`. This may feel like it's the same as the previous step, but, if you think about the segment builder in the web interface, it will start to make sense -- there are two levels at which can combine multiple "things" together to define a segment. Alas! Here, again, we're just including a single segment vector, so it all feels really cumbersome.
-4. Put _that_ into a _segment object_, which is what we're actually going to use in the data. We actually give the segment a name here that will be returned in the results.
-5. Actually pull the data, passing in the _segment object_ as an argument.
+1. Define a **segment element** using `segment_element()`. This is just a single conditional statement.
+2. Combine one or more segment elements together into a **segment vector** using `segment_vector_simple()`. There are a few options here, but we're going to stick with the simple approach. And, it's still going to feel redundant, because we're only including a single segment element.
+3. Combine one or more **segment vectors** into a **segment definition** using `segment_define()`. This may feel like it's the same as the previous step, but, if you think about the segment builder in the web interface, it will start to make sense -- there are two levels at which can combine multiple "things" together to define a segment. Alas! Here, again, we're just including a single segment vector, so it all feels really cumbersome.
+4. Put **that** into a **segment object**, which is what we're actually going to use in the data. We actually give the segment a name here that will be returned in the results.
+5. Actually pull the data, passing in the **segment object** as an argument.
 
 In addition to the "hierarchy" messiness for a simple segment, there is also some `list()` messiness. Note, for instance, how `my_segment_vector` in the example code includes a list within a list. Use this example (and other examples on this site) as well as the `?segment_ga4()` documentation to troubleshoot.
 
