@@ -18,7 +18,7 @@ All three approaches are perfectly acceptable.
 
 The trick to this is that we actually pass the [v3 dynamic segment definition](https://developers.google.com/analytics/devguides/reporting/core/v3/segments#dynamic) into the `segment_id` argument for `segment_ga4()`. It's not super-intuitive, because we're passing the _actual segment definition_ rather than an "id"... but when cramming v3 stuff into a v4 world, we've got to be a little forgiving, no?
 
-```{r data-pull, message=FALSE, warnings=FALSE, results='hide'}
+```{r data-pull, message=FALSE, warning=FALSE, results='hide'}
 
 # For code readability, create a separate object with the segment definition.
 mobile_segment_v3 <- "sessions::condition::ga:deviceCategory==Mobile"
@@ -45,7 +45,7 @@ head(ga_data)
 
 ```
 
-```{r data-pull-display, echo=FALSE, message=FALSE, warnings=FALSE}
+```{r data-pull-display, echo=FALSE, message=FALSE, warning=FALSE}
 # Nicer display of the head
 kable(head(ga_data))
 ```
@@ -54,7 +54,7 @@ kable(head(ga_data))
 
 Since we didn't sort the data when we queried it, let's go ahead and sort it here _and_ grab just the top 10 pages.
 
-```{r munging, message=FALSE, warnings=FALSE, results='hide'}
+```{r munging, message=FALSE, warning=FALSE, results='hide'}
 
 # Using dplyr, sort descending and then grab the top 10 values. We also need to make the
 # page column a factor so that the order will be what we want when we chart the data.
@@ -70,7 +70,7 @@ head(ga_data_top_10)
   
 ```
 
-```{r munge-display, echo=FALSE, message=FALSE, warnings=FALSE}
+```{r munge-display, echo=FALSE, message=FALSE, warning=FALSE}
 # Nicer display of the head
 kable(head(ga_data_top_10))
 ```
@@ -79,7 +79,7 @@ kable(head(ga_data_top_10))
 
 This won't be the prettiest bar chart, but let's make a horizontal bar chart with the data. Remember, in **ggplot2**, a horizontal bar chart is just a normal bar chart with `coord_flip()`.
 
-```{r visualize, message=FALSE, warnings=FALSE}
+```{r visualize, message=FALSE, warning=FALSE}
 
 # Create the plot. Note the stat="identity"" (because the data is already aggregated) and
 # the coord_flip(). And, I just can't stand it... added on the additional theme stuff to

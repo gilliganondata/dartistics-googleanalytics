@@ -7,7 +7,7 @@ The steps below are a one-time setup, but they must be followed for the examples
 # Create a Google Project
 Follow the steps in this video from Donal Phipps:
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/4B88dRbwNfc" frameborder="0" allowfullscreen></iframe>
+<div align="center"><iframe width="560" height="315" src="https://www.youtube.com/embed/4B88dRbwNfc" frameborder="0" allowfullscreen></iframe></div>
 
 We're not going to enter the client ID and client secret directly in any of these examples, but, rather, store them in the `.Renviron` file, which is detailed below. It's fine if you made the full bit of code as Donal described it in the video, but know that you will need to copy the `client_id` and `client_secret` into another file as detailed below.
 

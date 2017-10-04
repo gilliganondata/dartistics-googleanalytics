@@ -29,9 +29,11 @@ navbar:
          href: simple-dynamic-segment.html
        - text: "Simple Dynamic Segment - v3"
          href: simple-dynamic-segment-v3.html
+    - text: "dartistics.com"
+      href: http://dartistics.com
 output:
   html_document:
-    theme: simplex
+    theme: flatly
     css: includes/styles.css
     title-prefix: "Google Analytics and R Examples"
     includes:

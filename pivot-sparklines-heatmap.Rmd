@@ -18,7 +18,7 @@ This example pulls sessions by day for **device category** and **medium** and th
 
 This is a simple query with just three dimensions and one metric. We're pulling the data at a daily level so we can plot the sparklines, but we're then going to "roll it up" for the heatmap totals.
 
-```{r data-pull, message=FALSE, warnings=FALSE, results='hide'}
+```{r data-pull, message=FALSE, warning=FALSE, results='hide'}
 
 # Pull the data. See ?google_analytics_4() for additional parameters. The anti_sample = TRUE
 # parameter will slow the query down a smidge and isn't strictly necessary, but it will
@@ -34,7 +34,7 @@ ga_data <- google_analytics_4(viewId = view_id,
 head(ga_data)
 ```
 
-```{r data-pull-display, echo=FALSE, message=FALSE, warnings=FALSE}
+```{r data-pull-display, echo=FALSE, message=FALSE, warning=FALSE}
 # Nicer display of the head
 kable(head(ga_data))
 ```
@@ -48,7 +48,7 @@ We've got two things we want to do here. Actually, one is a "want," and one is a
 
 Both of these are pretty straighforward to do.
 
-```{r munging, message=FALSE, warnings=FALSE, results='hide'}
+```{r munging, message=FALSE, warning=FALSE, results='hide'}
 
 # Remove the "date" component to get total sessions for the heatmap
 ga_data_totals <- ga_data %>% 
@@ -88,7 +88,7 @@ head(ga_data_totals)
 
 ```
 
-```{r munge-display, echo=FALSE, message=FALSE, warnings=FALSE}
+```{r munge-display, echo=FALSE, message=FALSE, warning=FALSE}
 # Nicer display of the head
 kable(head(ga_data_totals))
 ```
@@ -110,7 +110,7 @@ Note how the order of the rows and columns seems pretty logical -- from "biggest
 
 There is a lot of additional adjustments that you may want to get into with this layout, but this site isn't intended to be a full tutorial on **ggplot2**, so we're going to call this "good enough."
 
-```{r visualization, message=FALSE, warnings=FALSE}
+```{r visualization, message=FALSE, warning=FALSE}
 
 # Create the plot
 gg <- ggplot(ga_data_totals, mapping=aes(x = deviceCategory, y = medium)) +
@@ -136,7 +136,7 @@ Now, we're going to use the _original_ data (albeit with **medium** and **device
 
 Once again, we've got relatively minimal tuning of the actual visualization here, and most of that is through adjustments through `theme()`. Obviously, this could be adjusted much more.
 
-```{r visualization-sparklines, message=FALSE, warnings=FALSE}
+```{r visualization-sparklines, message=FALSE, warning=FALSE}
 
 # Create the plot
 gg_sparklines <- ggplot(ga_data, mapping=aes(x = date, y = sessions)) +

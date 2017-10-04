@@ -22,7 +22,7 @@ Even without the bug, I consider this approach vastly inferior to the approach u
 
 We have to, first, define what we're going to pivot. After that, it's a pretty straightforward query.
 
-```{r data-pull, message=FALSE, warnings=FALSE, results='hide'}
+```{r data-pull, message=FALSE, warning=FALSE, results='hide'}
 
 # Start by defining the pivot object. See ?pivot_ga4() for details.
 my_pivot_object <- pivot_ga4("deviceCategory",
@@ -43,7 +43,7 @@ ga_data <- google_analytics_4(viewId = view_id,
 head(ga_data)
 ```
 
-```{r data-pull-display, echo=FALSE, message=FALSE, warnings=FALSE}
+```{r data-pull-display, echo=FALSE, message=FALSE, warning=FALSE}
 # Nicer display of the head
 kable(head(ga_data))
 ```
@@ -54,7 +54,7 @@ This is the apparent/possible bug noted in the intro -- we seem to be missing a 
 
 The column headings are pretty ugly and redundant, and the **sessions** column isn't necessarily one we'd want to keep, so let's do a little cleanup.
 
-```{r munging, message=FALSE, warnings=FALSE, results='hide'}
+```{r munging, message=FALSE, warning=FALSE, results='hide'}
 
 # Remove the 'sessions' column
 ga_data <- select(ga_data, -sessions)
@@ -67,7 +67,7 @@ head(ga_data)
 
 ```
 
-```{r munge-display, echo=FALSE, message=FALSE, warnings=FALSE}
+```{r munge-display, echo=FALSE, message=FALSE, warning=FALSE}
 # Nicer display of the head
 kable(head(ga_data))
 ```

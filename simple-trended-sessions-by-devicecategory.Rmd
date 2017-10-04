@@ -13,7 +13,7 @@ This example pulls **sessions** and by **device category** for the last 30 days 
 
 This is a simple query. 
 
-```{r data-pull, message=FALSE, warnings=FALSE, results='hide'}
+```{r data-pull, message=FALSE, warning=FALSE, results='hide'}
 # Pull the data. See ?google_analytics_4() for additional parameters. The anti_sample = TRUE
 # parameter will slow the query down a smidge and isn't strictly necessary, but it will
 # ensure you do not get sampled data.
@@ -28,7 +28,7 @@ ga_data <- google_analytics_4(viewId = view_id,
 head(ga_data)
 ```
 
-```{r data-pull-display, echo=FALSE, message=FALSE, warnings=FALSE}
+```{r data-pull-display, echo=FALSE, message=FALSE, warning=FALSE}
 # Nicer display of the head
 kable(head(ga_data))
 ```
@@ -41,7 +41,7 @@ We don't actually need to do any data munging in this example (although, in prac
 
 This won't be the prettiest plot, but this example isn't diving into the details of ggplot2. If you want to read up on that, [this page on dartistics.com](http://www.dartistics.com/ggplot2.html) is worth checking out.
 
-```{r visualize, message=FALSE, warnings=FALSE}
+```{r visualize, message=FALSE, warning=FALSE}
 
 # Create the plot.
 gg <- ggplot(ga_data, mapping = aes(x = date, y = sessions, colour = deviceCategory)) +
