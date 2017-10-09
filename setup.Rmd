@@ -58,4 +58,4 @@ if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
 
 You should be all set! The examples should all work!
 
-* _Subjectively... but it's what [@HoloMarkeD](http://twitter.com/holomarked) does, and you can come up with your own special way at your own risk._
+\* _Subjectively... but it's what [\@HoloMarkeD](http://twitter.com/holomarked) does, and you can come up with your own special way at your own risk._

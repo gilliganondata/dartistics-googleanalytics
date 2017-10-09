@@ -80,7 +80,7 @@ Since we didn't sort the data when we queried it, let's go ahead and sort it her
 
 # Using dplyr, sort descending and then grab the top 10 values. We also need to make the
 # page column a factor so that the order will be what we want when we chart the data.
-# This is a nuisance, but you get used to it. That's what the mutate functio is doing
+# This is a nuisance, but you get used to it. That's what the mutate function is doing.
 ga_data_top_10 <- ga_data %>%
   arrange(-pageviews) %>% 
   top_n(10) %>% 
