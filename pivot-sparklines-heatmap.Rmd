@@ -148,7 +148,7 @@ gg_sparklines <- ggplot(ga_data, mapping=aes(x = date, y = sessions)) +
         panel.background = element_blank(),
         strip.background = element_blank(),
         strip.text = element_text(colour = "black"),
-        strip.text.y = element_text(angle = 0, hjust = 1),
+        strip.text.y = element_text(angle = 180, hjust = 1),
         axis.ticks = element_blank(),
         axis.text = element_blank(),
         axis.title.x = element_blank())
