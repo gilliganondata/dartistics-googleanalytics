@@ -50,7 +50,7 @@ Now, check the **Environment** pane in RStudio. You should see an object called 
 Some examples will use other packages, but that will be called out in the example itself. Almost all of the examples use `googleAnalyticsR` and various packages in the Tidyverse, so run the code below in your console just to get those installed in the event that they are not:
 
 ```
-packages <- c("googleAnalyticsR", "tidyverse", "devtools")
+packages <- c("googleAnalyticsR", "tidyverse", "devtools", "googleVis")
 if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
   install.packages(setdiff(packages, rownames(installed.packages())))  
 }

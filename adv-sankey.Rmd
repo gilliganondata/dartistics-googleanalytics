@@ -1,0 +1,207 @@
+---
+title: "Create Homepage Sankey Chart"
+---
+
+This example creates a Sankey chart to show how traffic flows from the homepage, split by device category. 
+
+Steps to achieve this are:
+
+1. Call `google_analytics_4` to get unique pageviews, split by the secondPagePath dimension. We apply a dimension filter to limit the results only to users landing on our website homepage.
+2. Filter our results to the top 20 pages only, to avoid creating an indecipherable diagram with too many possible paths.
+3. Build our plot with the resulting dataframe. We use the `googleVis` package library and build a `gvisSankey` plot. We set some options to colour traffic paths according to the referring `channelGrouping` for our visitors. 
+
+These examples were built thanks to the excellent articles on r-bloggers.com by Tony Hirst. For more information, see:
+
+- https://www.r-bloggers.com/experimenting-with-sankey-diagrams-in-r-and-python/
+- https://github.com/psychemedia/parlihacks/blob/master/Rmd/sankeyFlow.Rmd
+
+---
+
+# Setup/Config
+
+```{r child='includes/z_setup.Rmd'}
+```
+
+# Pull the Data
+
+Now we're ready to make our call to the `google_analytics_4` function. We'll pull the `uniquePageViews` metric, combined with the `channelGrouping` and `secondPagePath` ([read about this metric in the GA reporting documentation](https://developers.google.com/analytics/devguides/reporting/core/dimsmets#view=detail&group=page_tracking&jump=ga_secondpagepath)). 
+
+Before making the call, we need to build a `filter_clause_ga4` object, containing one `dim_filter` to get data **only** for sessions where our users landed on the homepage of our site. Mark Edmondson has written some very helpful documentation on the new filter clauses - [read the documentation here](http://code.markedmondson.me/googleAnalyticsR/v4.html#new-filter-syntax).
+
+The code below will build a list which can be passed as an argument to our `google_analytics_4` request. We use a [regular expression](https://www.rstudio.com/wp-content/uploads/2016/09/RegExCheatsheet.pdf) to identify the homepage. The code below assumes the homepage shows up in your **Pages** report as simply "/", but you can adjust the `expressions` argument if that's not actually the case (or, of course, you can run this entire example for _any_ landing page you choose by adjusting that argument. Or... create multiple Sankey charts for each of your _top_ landing pages; oh...the possibilities!) .
+
+```{r filters, warning = FALSE, message = FALSE, results='hide'}
+# Create page filter object
+page_filter <- dim_filter(
+  dimension = "landingPagePath",
+  operator = "REGEXP",
+  expressions = "^/$")
+homepage_filter <- filter_clause_ga4(list(page_filter))
+
+# Now, we're ready to pull the data from the GA API. We build a `google_analytics_4` request, 
+# passing the `homepage_filter` to the `dim_filters` argument.
+home_next_pages <- google_analytics_4(
+  viewId = view_id,
+  date_range = c(start_date, end_date),
+  dimensions = c("secondPagePath", "channelGrouping"),
+  metrics = "uniquePageviews",
+  dim_filters = homepage_filter,
+  max = -1,
+  anti_sample = TRUE
+)
+
+# Go ahead and do a quick inspection of the data that was returned. This isn't required,
+# but it's a good check along the way.
+head(home_next_pages)
+
+```
+
+```{r data-pull-display, echo=FALSE, message=FALSE, warning=FALSE}
+# Nicer display of the head
+kable(head(home_next_pages))
+```
+
+What we have is a data frame containing unique pageviews per next page for visits which started on your homepage, split by traffic source. The data used here isn't from a site with the world's most diverse and interesting set of channels, but, with luck, your data will be!
+
+# Data Munging
+
+We have a small problem in the number of possible next pages for our sessions (you don't need to include this code -- it's just checking the number of unique values for the `secondPagePath` dimension in our data set).
+
+```{r next_page_numbers}
+length(unique(home_next_pages$secondPagePath))
+```
+
+We should thin this down to a number which can be easily visualised, which is a two-step process:
+
+1. We'll group the data by page path, arrange in order of pageviews and filter out the lower-volumes pages (or, put another way, only _keep_ the top 10 pages overall).
+2. We'll then go back to our original data set and keep _only_ the values that include those top 10 pages.
+
+
+```{r slim_down, results='hide'}
+# Build the data frame of top 10 pages:
+top_10 <- home_next_pages %>% 
+  group_by(secondPagePath) %>% 
+  summarise(upvs = sum(uniquePageviews)) %>% 
+  top_n(10, upvs) %>% 
+  arrange(desc(upvs))
+
+# Using this list of our top 10 pages, use the `semi_join` function from `dplyr` to restrict 
+# our data to pages & channels that have one of these top 10 pages as the second page viewed.
+home_next_pages <- home_next_pages %>% 
+  semi_join(top_10, by = "secondPagePath")
+
+# Check the data again. It's the same structure as it was originally, and the head() is likely
+# identical. But, we know that, deeper in the data, the lower-volume pages have been removed.
+head(home_next_pages)
+```
+
+```{r slimdown-display, echo=FALSE, message=FALSE, warning=FALSE}
+# Nicer display of the head
+kable(head(home_next_pages))
+```
+
+Now we have a data frame ready for plotting, using our top 10 pages. Again, you don't need to include this code. We're just showing that we're now down to 10 unique values for `secondPagePath`.
+
+```{r}
+# Only 10 unique URLs are in our results, now
+length(unique(home_next_pages$secondPagePath))
+```
+
+
+# Data Visualization
+
+## A Basic Plot
+
+We'll make use of the `gvisSankey` function to build our plot ( [read the function documentation](https://www.rdocumentation.org/packages/googleVis/versions/0.6.0/topics/gvisSankey) ).
+
+```{r plot_first, results='asis', message=FALSE}
+# Reordering colums: the gVisSankey function doesn't take kindly
+# if our df columns aren't strictly ordered as from:to:weight
+home_next_pages <- home_next_pages %>% 
+  select(channelGrouping, secondPagePath, uniquePageviews)
+
+# Build the plot
+s <- gvisSankey(home_next_pages)
+                # chartid = chart_id)
+plot(s)
+```
+
+```{r render_plot_first, results='asis', echo=FALSE}
+# To actually get this to render through knitter, we need to use print instead of plot
+cat("<div align=\"center\">")
+print(s, 'chart')
+cat("</div>")
+```
+
+&nbsp;<br>Note how you can actually mouse over the different values to see additional details.
+
+## Second Plot: Colour by Traffic Source
+
+Our first chart is a nice enough start, but pretty messy and hard to discriminate between traffic sources. We should try to colour node links according to the source (`channelGrouping`).
+
+You can control the appearance of your sankey chart, including link colours, by passing `options` values in using a json object or as part of a list. I find it easier to write the values as json, for readability.
+
+We have multiple possible channel groupings in our GA data. If we know how many we'll include (which we could have addressed in our **Data Munging** by forcing just the top _X_ channels), then we could define a list of colors that is exactly that long. For now, we're going to define 8 colour values, even though that's more than we actually need.
+
+We can generate these colour values as hex codes using the [colorbrewer](http://colorbrewer2.org/#type=qualitative&scheme=Accent&n=8) website. Colorbrewer helps to ensure our colours can be differentiated and follow good practice for data visualisation.
+
+```{r colours, results='asis', message=FALSE}
+# 8 values from colorbrewer. Note the use of array notation
+# colour_opts <- '["#7fc97f", "#beaed4","#fdc086","#ffff99","#386cb0","#f0027f","#bf5b17","#666666"]'
+colour_opts <- '["#7fc97f", "#beaed4","#fdc086","#ffff99"]'
+
+# Set colorMode to 'source' to colour by the chart's source
+opts <- paste0("{
+        link: { colorMode: 'source',
+                colors: ", colour_opts ," }
+      }" )
+
+# This colour list can now be passed as an option to our `gvisSankey` call. We pass them to the 
+# `options` argument for our plot.
+s <- gvisSankey(home_next_pages,
+                options = list(sankey = opts))
+plot(s)
+```
+
+```{r render_plot_second, results='asis', echo=FALSE}
+# To actually get this to render through knitter, we need to use print instead of plot
+cat("<div align=\"center\">")
+print(s, 'chart')
+cat("</div>")
+```
+
+This is a bit more useful. Still messy, but if you build your own plot, you'll notice that when you hover over each node, tooltips will appear to give you information about the source, destination, and volume of pageviews.
+
+## Third Plot: Highlight a Specific Traffic Source
+
+We may find it useful to limit the use of colour and focus on a subset of the data. Let's highlight the _second_ channel and wash out the colour for all other traffic sources.
+
+```{r colours_diverging}
+# 25% gray for all sources except the second one.
+colour_opts <- '["#999999", "#7fc97f","#999999","#999999","#999999","#999999","#999999","#999999"]'
+
+opts <- paste0("{
+        link: { colorMode: 'source',
+                colors: ", colour_opts ," },
+        node: { colors: '#999999' }
+      }" )
+
+# This colour list can now be passed as an option to our `gvisSankey` call.
+s <- gvisSankey(home_next_pages,
+                options = list(sankey = opts))
+plot(s)
+```
+
+```{r render_plot_third, results='asis', echo=FALSE}
+# To actually get this to render through knitter, we need to use print instead of plot
+cat("<div align=\"center\">")
+print(s, 'chart')
+cat("</div>")
+```
+
+This is a bit easier to read. There is plenty more work that can be done, but hopefully this guide provides enough information to get you started. 
+
+Remember that the number of next pages can be controlled to your preference. It could also be interesting to classify traffic by segment rather than `channelGrouping`, and use the segment types as your sources.
+
+Full documentation on `googleVis` sankey charts can be found at
+https://developers.google.com/chart/interactive/docs/gallery/sankey#controlling-colors

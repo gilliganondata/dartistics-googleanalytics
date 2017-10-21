@@ -33,6 +33,8 @@ navbar:
       menu:
        - text: "Multiple Dynamic Segments"
          href: adv-multiple-dynamic-segments.html
+       - text: "Sankey Chart (Traffic Flows)"
+         href: adv-sankey.html
     - text: "dartistics.com"
       href: http://dartistics.com
 output:
