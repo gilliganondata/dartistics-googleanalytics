@@ -29,12 +29,12 @@ No, silly, you don't want a bunch of Xs there! You will need to update those wit
 
 * **GA_CLIENT_ID** -- this is just the client ID from the Google Project you created following Donal's instructions
 * **GA_CLIENT_SECRET** -- it's not secret to you! This is just the client secret you created at the same time you created the client ID
-* **GA_EXAMPLE_VIEW_ID** -- this is the view ID that you want to use (at least initially) for exploring the examples. You can go to the [Google Analytics Query Explorer](https://ga-dev-tools.appspot.com/query-explorer/), select an account, property, and view, and then grab this value -- it's the `ids` value that is the first field under the *Query Parameters* section
+* **GA_VIEW_ID** -- this is the view ID that you want to use (at least initially) for exploring the examples. You can go to the [Google Analytics Query Explorer](https://ga-dev-tools.appspot.com/query-explorer/), select an account, property, and view, and then grab this value -- it's the `ids` value that is the first field under the *Query Parameters* section
 
 Now, save the file.
 
 ## 3. Reload the .Renviron file
-This happens any time you start a new R session, so you won't have to worry about this going forward unless you change a value (like `GA_EXAMPLE_VIEW_ID`). For this one time, though, select **Session > Restart R** in RStudio.
+This happens any time you start a new R session, so you won't have to worry about this going forward unless you change a value (like `GA_VIEW_ID`). For this one time, though, select **Session > Restart R** in RStudio.
 
 ## 4. Confirm that your .Renviron file is working
 Run the following code in your console:
