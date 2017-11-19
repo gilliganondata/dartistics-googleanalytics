@@ -23,7 +23,7 @@ The examples expect three variables to be in the '.Renviron' file. You're welcom
 ```
 GA_CLIENT_ID = "XXXXXXXXXXXXX-XXXXXXXXXXXXX-XXXXXXXXXXX.apps.googleusercontent.com"
 GA_CLIENT_SECRET = "XXXXXXXXXXXXXXXXXXXXX"
-GA_EXAMPLE_VIEW_ID = "ga:XXXXXXXXXX"
+GA_VIEW_ID = "ga:XXXXXXXXXX"
 ```
 No, silly, you don't want a bunch of Xs there! You will need to update those with values that are unique to your environment:
 
