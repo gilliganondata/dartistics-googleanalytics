@@ -98,13 +98,13 @@ kable(head(totals_and_churn_df))
 
 ## Prep the Data to Be a Ready for Plotting
 
-Unfortunately, waterfall charts are kind of tricky to do in `ggplot2`. But, we can use 'geom_rect()' to draw this, which means we need to define the `min` and `max` for `x` and `y` for each box on the chart. We'll go ahead and introduce some redundancy in the plotting for the sake of clarity by defining three types of bars that, for each week, will appear in this order:
+Unfortunately, waterfall charts are kind of tricky to do in `ggplot2`. But, we can use `geom_rect()` to draw this, which means we need to define the `min` and `max` for `x` and `y` for each box on the chart. We'll go ahead and introduce some redundancy in the plotting for the sake of clarity by defining three types of bars that, for each week, will appear in this order:
 
 * *newUsers* -- these are the new users for each week; we'll plot these as green
 * *churned_users* -- these are the churned users each week; we'll plot these as red
 * *users* -- these are the actual users for each week; we'll plot these as gray
 
-The `xmin` and `xmax` for each of these will differ: *newUsers* will be offset to the left of the week, and *users* will be offset to the right. Yeesh. This is confusing. Ultimately, this is what the data looks like:
+The `xmin` and `xmax` for each of these will differ: *newUsers* will be offset to the left of the week, and *users* will be offset to the right. Yeesh. This is confusing. And it takes a bit of code to get that all worked out:
 
 ```{r waterfall_data, message=FALSE, warning=FALSE, results='hide'}
 # Add a few intermediate values that we'll use after we convert to a long forma
