@@ -15,7 +15,7 @@ Even without the bug, I consider this approach vastly inferior to the approach u
 
 # Setup/Config
 
-```{r child='includes/z_setup.Rmd'}
+```{r child='z_setup.Rmd'}
 ```
 
 # Pull the Data
@@ -31,7 +31,7 @@ my_pivot_object <- pivot_ga4("deviceCategory",
 # Pull the data. See ?google_analytics_4() for additional parameters. The anti_sample = TRUE
 # parameter will slow the query down a smidge and isn't strictly necessary, but it will
 # ensure you do not get sampled data.
-ga_data <- google_analytics_4(viewId = view_id,
+ga_data <- google_analytics(viewId = view_id,
                               date_range = c(start_date, end_date),
                               metrics = "sessions",
                               dimensions = "medium",
@@ -74,4 +74,4 @@ kable(head(ga_data))
 
 # Data Visualization
 
-This could be a nice little heatmap, but to do that with ggplot2, we'd have to gather it up into a tidy format. Basically...unpivot it! That seems silly -- better to have pulled it unpivoted! I'm taking a moral stance and not jumping through that particular set of hoops for this example.
+This could be a nice little heatmap, but to do that with ggplot2, we'd have to gather it up into a tidy format. Basically...unpivot it! That seems silly -- better to have pulled it unpivoted! I'm taking a moral stance and not jumping through that particular set of hoops for this example. So, no visualization on this one!

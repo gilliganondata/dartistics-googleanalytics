@@ -45,17 +45,6 @@ client_id <- Sys.getenv("GA_CLIENT_ID")
 
 Now, check the **Environment** pane in RStudio. You should see an object called `client_id` with the client ID for your Google Project. You can run this for the other two values, too, but let's just assume that, if it worked for one, you're all set.
 
-# Install the Primary Packages We'll Use
-
-Some examples will use other packages, but that will be called out in the example itself. Almost all of the examples use `googleAnalyticsR` and various packages in the Tidyverse, so run the code below in your console just to get those installed in the event that they are not:
-
-```
-packages <- c("googleAnalyticsR", "tidyverse", "devtools", "googleVis")
-if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
-  install.packages(setdiff(packages, rownames(installed.packages())))  
-}
-```
-
 You should be all set! The examples should all work!
 
 \* _Subjectively... but it's what [\@HoloMarkeD](http://twitter.com/holomarked) does, and you can come up with your own special way at your own risk._

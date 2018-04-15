@@ -6,7 +6,7 @@ This example pulls sessions by **device category** and **medium** and then displ
 
 # Setup/Config
 
-```{r child='includes/z_setup.Rmd'}
+```{r child='z_setup.Rmd'}
 ```
 
 # Pull the Data
@@ -18,7 +18,7 @@ This is a simple query with just two dimensions and one metric.
 # Pull the data. See ?google_analytics_4() for additional parameters. The anti_sample = TRUE
 # parameter will slow the query down a smidge and isn't strictly necessary, but it will
 # ensure you do not get sampled data.
-ga_data <- google_analytics_4(viewId = view_id,
+ga_data <- google_analytics(viewId = view_id,
                               date_range = c(start_date, end_date),
                               metrics = "sessions",
                               dimensions = c("medium","deviceCategory"),

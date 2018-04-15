@@ -8,7 +8,7 @@ With the v4 API, dynamic segments are more powerful than v3, but (alas!) pretty 
 
 # Setup/Config
 
-```{r child='includes/z_setup.Rmd'}
+```{r child='z_setup.Rmd'}
 ```
 
 # Pull the Data
@@ -83,7 +83,7 @@ get_data <- function(device_category){
                               orderType = "VALUE")
   
   # Pull the data. See ?google_analytics_4() for additional parameters.
-  ga_data <- google_analytics_4(viewId = view_id,
+  ga_data <- google_analytics(viewId = view_id,
                                 date_range = c(start_date, end_date),
                                 metrics = "pageviews",
                                 dimensions = "pagePath",

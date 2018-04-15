@@ -19,7 +19,7 @@ These examples were built thanks to the excellent articles on r-bloggers.com by 
 
 # Setup/Config
 
-```{r child='includes/z_setup.Rmd'}
+```{r child='z_setup.Rmd'}
 ```
 
 # Pull the Data
@@ -40,7 +40,7 @@ homepage_filter <- filter_clause_ga4(list(page_filter))
 
 # Now, we're ready to pull the data from the GA API. We build a `google_analytics_4` request, 
 # passing the `homepage_filter` to the `dim_filters` argument.
-home_next_pages <- google_analytics_4(
+home_next_pages <- google_analytics(
   viewId = view_id,
   date_range = c(start_date, end_date),
   dimensions = c("secondPagePath", "channelGrouping"),

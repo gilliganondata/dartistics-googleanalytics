@@ -1,0 +1,220 @@
+---
+title: "Waterfall Chart / Aggregated Churn"
+---
+
+Credit to [Jamarius Taylor](https://www.linkedin.com/in/jamarius-taylor/) for thinking up this one. The idea is that visitors that are new have the opportunity to return to the site (just like customers who buy once have an opportunity to buy more). Obviously, not every site can reasonably expect all visitors to return, and, even those that do will have differing timeframes within which they would _expect_ visitors to return.
+
+Nonetheless, this seems to be an illustrative example. We're going to use a waterfall chart for the visualization. The [waterfalls package](https://cran.r-project.org/web/packages/waterfalls/index.html) offers one option for doing this, but that doesn't exactly seem to be a mainstream package, so this example simply relies on plain ol' `ggplot2` and the various machinations required therein.
+
+# Website Churn
+
+If a website has _zero_ churn, then we would expect each week's users to be the number of users from the _previous week plus the number of _new_ users from the _current_ week. This assumes that active users return at least once per week (which is fair, if, clearly, an ideal that is unachievable):
+
+$$[\#\ of\ Users\ Current\ Week] = [\#\ of\ Users\ Previous\ Week] + [\#\ of\ New\ Users\ Current\ Week]$$
+
+Therefore, one way to calculate the _churn_ is to take that theoretical ideal and subtract the actual number of users from it. That would be the number of non-returning users:
+
+$$[Churned\ Visitors] = [\#\ of\ Users\ Previous\ Week] + [\#\ of\ New\ Users\ Current\ Week] - [\#\ of\ Users\ Current\ Week]$$
+
+The churn _rate_ would then be:
+
+$$[Churn\ Rate] = \frac{[Churned\ Visitors]}{[\#\ of\ Users\ Previous\ Week]}$$
+
+We're not actually going to calculate _Churn Rate_ in this example...but we could.
+
+# Setup/Config
+
+```{r child='z_setup_8_weeks.Rmd'}
+```
+
+# Pull the Data
+
+This is pretty straightforward. We just need to pull users and new users by week (this could also be done by week):
+
+```{r data-pull, message=FALSE, warning=FALSE, results='hide'}
+
+# Pull the data. See ?google_analytics_4() for additional parameters.
+ga_data <- google_analytics(viewId = view_id,
+                              date_range = c(start_date, end_date),
+                              metrics = c("users", "newUsers"),
+                              dimensions = c("week","year"))
+
+# Go ahead and do a quick inspection of the data that was returned. This isn't required,
+# but it's a good check along the way.
+head(ga_data)
+```
+
+```{r data-pull-display, echo=FALSE, message=FALSE, warning=FALSE}
+# Nicer display of the head
+kable(head(ga_data))
+```
+
+# Data Munging
+
+## Start by Ordering the Data
+
+This just ensures the data is easy enough to look at and interpret.
+
+```{r munging, message=FALSE, warning=FALSE, results='hide'}
+
+# Using dplyr, sort by year and week.
+ga_data <- ga_data %>%
+  arrange(year, week)
+
+# Take a quick look at the result.
+head(ga_data)
+  
+```
+
+```{r munge-display, echo=FALSE, message=FALSE, warning=FALSE}
+# Nicer display of the head
+kable(head(ga_data))
+```
+
+## Calculate the Churned Visitors
+
+```{r churn-calc, message=FALSE, warning=FALSE, results='hide'}
+
+# Calculate the churn and add some date levels
+totals_and_churn_df <- ga_data %>%
+  mutate(previous_week_users = lag(users, 1, default = 0)) %>%         # Get previous week users
+  mutate(churned_users = previous_week_users + newUsers - users) %>%   # Calculate churned users
+  mutate(date = paste(year,week, sep="-")) %>%                         # Calculate a "week" as YYYY-WW
+  mutate(date = factor(date, levels = date)) %>%                       # Make date a factor
+  select(date, users, newUsers, previous_week_users, churned_users)
+
+# NA the churned users and new users for the first row
+totals_and_churn_df$churned_users[1] <- NA
+totals_and_churn_df$newUsers[1] <- NA
+
+# Display the results
+head(totals_and_churn_df)
+```
+
+```{r churn-calc-display, echo=FALSE, message=FALSE, warning=FALSE}
+# Nicer display of the head
+kable(head(totals_and_churn_df))
+```
+
+## Prep the Data to Be a Ready for Plotting
+
+Unfortunately, waterfall charts are kind of tricky to do in `ggplot2`. But, we can use 'geom_rect()' to draw this, which means we need to define the `min` and `max` for `x` and `y` for each box on the chart. We'll go ahead and introduce some redundancy in the plotting for the sake of clarity by defining three types of bars that, for each week, will appear in this order:
+
+* *newUsers* -- these are the new users for each week; we'll plot these as green
+* *churned_users* -- these are the churned users each week; we'll plot these as red
+* *users* -- these are the actual users for each week; we'll plot these as gray
+
+The `xmin` and `xmax` for each of these will differ: *newUsers* will be offset to the left of the week, and *users* will be offset to the right. Yeesh. This is confusing. Ultimately, this is what the data looks like:
+
+```{r waterfall_data, message=FALSE, warning=FALSE, results='hide'}
+# Add a few intermediate values that we'll use after we convert to a long forma
+waterfall_df <- totals_and_churn_df %>% 
+  mutate(week_max = users + churned_users,
+         week_current_users = users)
+
+# Convert to long format
+waterfall_df <- waterfall_df %>% 
+  gather(key = "user_type", value = "number_of_users", 
+         -date, -previous_week_users, -week_max, -week_current_users,
+         na.rm = TRUE)
+
+# Function to calculate xmin, xmax, ymin, and ymax when passed a row from the
+# data set.
+calc_rect_coords <- function(date, previous_week_users, week_max,
+                             week_current_users, user_type, number_of_users){
+  
+  x_offset <-  0.25   # Base offset for x for rects
+  bar_half_width <- 0.1  # Define the bar width
+
+  if(user_type == "users"){
+    xmin <- as.numeric(date) + x_offset - bar_half_width - 0.02  # Make it a little wider
+    xmax <- as.numeric(date) + x_offset + bar_half_width + 0.02
+    ymin <- 0
+    ymax <- number_of_users
+    user_type = "Users"
+  } else if(user_type == "churned_users"){
+    xmin <- as.numeric(date) - bar_half_width
+    xmax <- as.numeric(date) + bar_half_width
+    ymin <- week_current_users
+    ymax <- week_current_users + number_of_users
+    user_type = "Churned Users"
+  } else 
+    # New Users
+    {
+    xmin <- as.numeric(date) - x_offset - bar_half_width
+    xmax <- as.numeric(date) - x_offset + bar_half_width
+    ymin <- previous_week_users
+    ymax <- previous_week_users + number_of_users
+    user_type = "New Users"
+  } 
+  
+  result = data.frame(date = date,
+                      user_type = user_type,
+                      xmin = xmin,
+                      xmax = xmax,
+                      ymin = ymin,
+                      ymax = ymax)
+}
+
+# Build out all of our rectangles. 
+plot_data <- pmap_dfr(waterfall_df, calc_rect_coords)
+
+# This trashes our nice date factor, so drop the one that came back
+# and add on our original
+plot_data <- select(plot_data, -date)
+plot_data <- cbind(plot_data, waterfall_df$date)
+plot_data <- plot_data %>% 
+  select(date = `waterfall_df$date`,
+         user_type,
+         xmin, xmax, ymin, ymax)
+
+# Display the head
+head(plot_data, 20)
+
+```
+
+```{r waterfall_data_display, echo=FALSE, message=FALSE, warning=FALSE}
+# Nicer display of the head
+kable(head(plot_data,20))
+```
+
+# Data Visualization
+
+With all that data prep, we can now plot the results. The way to read this is that, each week, there is a number of users. Then, for the next week, in order, we:
+
+* Add the new users gained (new users for the week) -- green
+* Then, subtract the (calculated) churned users -- red
+* So we wind up with the total users for that week -- gray
+
+The thing that may be a little misleading here is that we're making an assumption that "non-churned users" actually return to the site each subsequent week. But, that may not be too bad, especially if we're looking to illustrate that it's a constant battle to get new traffic to the site!
+
+_As one note, ideally, this chart would also include horizontal lines connecting the top of each *Users* bar to the bottom of each *New Users* bar, from the top of each *New Users* bar to the top of each *Churned Users* bar, and from the bottom of each *Churned Users* bar to the top of each *Users* bar. But, that's an even bigger hassle, so it's not included here._
+
+```{r plot_results, fig.width = 8}
+
+# Define the theme
+theme_waterfall <- theme_light() +
+  theme(legend.position = "top",
+        legend.title = element_blank(),
+        plot.title = element_text(hjust=0.5),
+        panel.grid.major.x = element_blank(),
+        panel.border = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title = element_blank())
+
+# Build the actual plot. What we're actually doing here is drawing each bar as a
+# separate rectangle.
+gg_results <- ggplot(plot_data, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
+                                    fill = user_type, x=date)) +
+  geom_rect() +
+  scale_fill_manual(values = c("#f98e8e","#8ee26a","gray60")) +
+  scale_y_continuous(label = comma, expand = c(0,0)) +
+  labs(title = "Waterfall of Users Over Time", y="Users") +
+  theme_waterfall
+
+# Output the plot
+gg_results
+
+```
+
+

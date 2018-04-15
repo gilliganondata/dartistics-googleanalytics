@@ -6,7 +6,7 @@ This example pulls the top 5 *mediums* by *sessions* for the last 30 days ordere
 
 # Setup/Config
 
-```{r child='includes/z_setup.Rmd'}
+```{r child='z_setup.Rmd'}
 ```
 
 # Pull the Data
@@ -23,7 +23,7 @@ order_sessions_desc <- order_type("sessions",
 # Pull the data. See ?google_analytics_4() for additional parameters. Note that we are
 # NOT using anti_sample = TRUE. This is because we are setting max = 5, and the max
 # argument has no impact when anti_sample = TRUE.
-ga_data <- google_analytics_4(viewId = view_id,
+ga_data <- google_analytics(viewId = view_id,
                               date_range = c(start_date, end_date),
                               metrics = "sessions",
                               dimensions = "medium",

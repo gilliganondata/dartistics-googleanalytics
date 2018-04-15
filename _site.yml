@@ -35,6 +35,8 @@ navbar:
          href: adv-multiple-dynamic-segments.html
        - text: "Sankey Chart (Traffic Flows)"
          href: adv-sankey.html
+       - text: "Waterfall Chart (Churn Rate)"
+         href: churn-waterfall.html
     - text: "dartistics.com"
       href: http://dartistics.com
 output:

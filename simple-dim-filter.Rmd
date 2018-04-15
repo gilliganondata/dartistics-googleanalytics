@@ -2,11 +2,11 @@
 title: "Simple Dimension Filter"
 ---
 
-This example pulls the top 10 pages for the last thirty days, _for pages that have "excel" in the page name_.* With the v4 API, filters are more powerful than v3, but (alas!) very basic filters can feel pretty convoluted. 
+This example pulls the top 10 pages for the last thirty days, _for pages that have "solutions" in the page name_. With the v4 API, filters are more powerful than v3, but (alas!) very basic filters can feel pretty convoluted. 
 
 # Setup/Config
 
-```{r child='includes/z_setup.Rmd'}
+```{r child='z_setup.Rmd'}
 ```
 
 # Pull the Data
@@ -30,7 +30,7 @@ Creating the dimension filter can feel convoluted. Or, at least, it can feel red
 # with it, the easier it will be to use when you have more complex needs. </soapbox>
 my_dim_filter_object <- dim_filter("pagePath", 
                                    operator = "REGEXP",
-                                   expressions = ".*excel.*")
+                                   expressions = ".*solutions.*")
 
 # Now, put that filter object into a filter clause. If you had multiple filters, there
 # are two aspects of this that wouldn't seem so weird. With one... they do seem weird:
@@ -44,7 +44,7 @@ my_dim_filter_clause <- filter_clause_ga4(list(my_dim_filter_object),
 # Pull the data. See ?google_analytics_4() for additional parameters. Depending on what
 # you're expecting back, you probably would want to use an "order" argument to get the
 # results in descending order. But, we're keeping this example simple.
-ga_data <- google_analytics_4(viewId = view_id,
+ga_data <- google_analytics(viewId = view_id,
                               date_range = c(start_date, end_date),
                               metrics = "pageviews",
                               dimensions = "pagePath",
@@ -112,4 +112,3 @@ gg
 
 ```
 
-_* Yes. This is intentionally ironic._
