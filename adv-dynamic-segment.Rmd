@@ -47,7 +47,7 @@ my_segment_list <- list(
 )
 ```
 
-Because the Google Analytics Reporting API can only b eused to query 4 segments at a time, we need to break our list segments into chunks.
+Because the Google Analytics Reporting API can only be used to query 4 segments at a time, we need to break our list segments into chunks.
 
 ```{r split-segment-list}
 segment_chunks <- split(my_segment_list, (seq_along(my_segment_list) - 1L) %/% 4L)
