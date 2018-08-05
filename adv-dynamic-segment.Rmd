@@ -31,11 +31,11 @@ In this example, we'll define a list of six segments:
 The above list of dynamic segments is defined using `ganalytics` expressions as follows:
 
 ```{r define-segments}
-bounces = Expr(~bounces != 0)
-conversions = Expr(~goalCompletionsAll > 0) | Expr(~transactions > 0)
-mobile_or_tablet = Expr(~deviceCategory %in% c("mobile", "tablet"))
-multi_session_users = Include(PerUser(Expr(~sessions > 1)), scope = "users")
-new_desktop_users = Expr(~deviceCategory == "desktop") & Expr(~userType == "new")
+bounces <- Expr(~bounces != 0)
+conversions <- Expr(~goalCompletionsAll > 0) | Expr(~transactions > 0)
+mobile_or_tablet <- Expr(~deviceCategory %in% c("mobile", "tablet"))
+multi_session_users <- Include(PerUser(Expr(~sessions > 1)), scope = "users")
+new_desktop_users <- Expr(~deviceCategory == "desktop") & Expr(~userType == "new")
 
 my_segment_list <- list(
   bounced_sessions = PerSession(bounces),
