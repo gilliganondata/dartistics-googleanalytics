@@ -2,7 +2,7 @@
 title: "Advanced Filters"
 ---
 
-This example shows alternative way of dimension or metric filters by  using functions from the `ganalytics` package. The current development version of `googleAnalyticsR` supports filters defined with `ganalytics`. `ganalytics` provides functions that makes it easy to define filters using natural R language operators.
+This example shows an alternative way of defining dimension or metric filters by using functions from the `ganalytics` package. The current development version of `googleAnalyticsR` supports filters defined with `ganalytics`. `ganalytics` provides functions that makes it easy to define filters using natural R language operators.
 
 # Setup/Config
 
