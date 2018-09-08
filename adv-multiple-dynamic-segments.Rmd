@@ -4,7 +4,7 @@ title: "Multiple Dynamic Segments (v4)"
 
 This example pulls three sets of data: the top 10 pages for the last thirty days on mobile, tablet, and desktop. This is, essentially, an extension of the [Simple Dynamic Segment - v4](simple-dynamic-segment.html) example _except_ it uses a function to pull the data so that a list of values ("Mobile," "Tablet", and "Desktop") can be processed to dynamically change the segment used to pull the data.
 
-With the v4 API, dynamic segments are more powerful than v3, but (alas!) pretty basic segments can feel pretty convoluted. This example could also be built for v3, but we want to _go forward_! And, v4 is the future!
+With the v4 API, dynamic segments are more powerful than v3, but (alas!) pretty basic segments can feel pretty convoluted. This example could also be built for v3, but we want to _go forward_! And, v4 is the future! Or, as an alternative, you can use the `ganalytics` package, which aims to simplify this sort of work. See the [Advanced Dynamic Segments with ganalytics](adv-dynamic-segments-ganalytics.html) example for an example of using `ganalytics` to create dynamic segments.
 
 # Setup/Config
 

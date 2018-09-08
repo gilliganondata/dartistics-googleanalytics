@@ -2,20 +2,18 @@
 title: "Advanced Filters"
 ---
 
-This example shows an alternative way of defining dimension or metric filters by using functions from the `ganalytics` package. The current development version of `googleAnalyticsR` supports filters defined with `ganalytics`. `ganalytics` provides functions that makes it easy to define filters using natural R language operators.
+This example shows an alternative way of defining dimension or metric filters by using functions from the `ganalytics` package. The current development version of `googleAnalyticsR` supports filters defined with `ganalytics`. `ganalytics` provides functions that makes it easy to define filters using natural R language operators. As of the most recent update to this site, this requires a "dev" (development) version of two packages:
+
+* `googleAnalyticsR` -- which exists on CRAN, but has more current versions posted on Github
+* `ganalytics` -- which does not yet exist on CRAN, but may at some point
+
+This actually means this example has the incidental educational value of showing how to use packages from GitHub! You can read up on the purpose of `ganalytics` -- developed by [Johann de Boer](https://twitter.com/johannux) -- [on GitHub](https://github.com/jdeboer/ganalytics). But, in short, it's intended to "support R users in defining reporting queries using natural R expressions instead of being concerned about API technical intricacies like query syntax, character code escaping and API limitations." 
 
 # Setup/Config
 
-Note that this example requires the current development versions of the `googleAnalyticsR` (>=0.5.0.9000) and `ganalytics` (>=0.10.4.9000) R packages available from GitHub. To install these, run the following code in R:
-```{r install, eval=FALSE}
-devtools::install_github("MarkEdmondson1234/googleAnalyticsR")
-devtools::install_github("jdeboer/ganalytics")
-```
+This example requires development versions of the `googleAnalyticsR` (>=0.5.0.9000) and `ganalytics` (>=0.10.4.9000) R packages available on GitHub, so the setup code below is a bit different (it has some additional code for loading a couple of packages from GitHub).
 
-The `googleAnalyticsR` package is already loaded, so we just need to now load `ganalytics`.
-
-```{r setup, child='z_setup.Rmd'}
-library(ganalytics)
+```{r setup, child='z_setup_ganalytics.Rmd'}
 ```
 
 # Pull the Data
@@ -29,29 +27,34 @@ The above list of filters will be defined using `ganalytics` expressions as foll
 
 ```{r define-filters}
 # Device category is desktop or tablet - a dimension filter using an OR condition.
-desktop_or_mobile <- Expr(~deviceCategory == "desktop") | Expr(~deviceCategory == "tablet")
+desktop_or_tablet <- Expr(~deviceCategory == "desktop") | Expr(~deviceCategory == "tablet")
 
 # New visitors using either a desktop or tablet device - a dimension filter involving both an AND and an OR condition.
-new_desktop_and_mobile_visitors <- Expr(~userType == "new") & desktop_or_mobile
+new_desktop_and_tablet_visitors <- Expr(~userType == "new") & desktop_or_tablet
 
 # At least one goal completion or transaction - a metric filter using an OR condition.
 at_least_one_conversion <- Expr(~goalCompletionsAll > 0) | Expr(~transactions > 0)
 ```
 
-We can now use `googleAnalyticsR` to 
+We can now use `googleAnalyticsR` to pull the data. Chances are, the table below will _only_ show a desktop row. That's because the site we use for this doesn't have a ton of traffic, and it rarely gets tablet conversions! But, trust us, this would return multiple rows on a site with more traffic and conversions.
 
-```{r pull-data, message=FALSE}
+```{r pull-data, message=FALSE, warning=FALSE, results='hide'}
+
+# Pull the data
 results <- google_analytics(
   viewId = view_id,
   date_range = c(start_date, end_date),
   metrics = c("users", "sessions", "goalCompletionsAll", "transactions"),
   dimensions = c("deviceCategory", "userType"),
-  dim_filters = new_desktop_and_mobile_visitors,
+  dim_filters = new_desktop_and_tablet_visitors,
   met_filters = at_least_one_conversion
 )
+
+# Display the results
+results
 ```
 
-```{r display-pulled-data}
+```{r display-pulled-data,echo=FALSE, message=FALSE, warning=FALSE}
 kable(results)
 ```
 

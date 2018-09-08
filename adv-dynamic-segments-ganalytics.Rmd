@@ -1,0 +1,129 @@
+---
+title: "Advanced Dynamic Segments with ganalytics"
+---
+
+This example demonstrates another way of defining dynamic segments by using functions from the `ganalytics` package. As of the most recent update to this site, this requires a "dev" (development) version of two packages:
+
+* `googleAnalyticsR` -- which exists on CRAN, but has more current versions posted on Github
+* `ganalytics` -- which does not yet exist on CRAN, but may at some point
+
+This actually means this example has the incidental educational value of showing how to use packages from GitHub! You can read up on the purpose of `ganalytics` -- developed by [Johann de Boer](https://twitter.com/johannux) -- [on GitHub](https://github.com/jdeboer/ganalytics). But, in short, it's intended to "support R users in defining reporting queries using natural R expressions instead of being concerned about API technical intricacies like query syntax, character code escaping and API limitations." 
+
+# Setup/Config
+
+This example requires development versions of the `googleAnalyticsR` (>=0.5.0.9000) and `ganalytics` (>=0.10.4.9000) R packages available on GitHub, so the setup code below is a bit different (it has some additional code for loading a couple of packages from GitHub).
+
+```{r setup, child='z_setup_ganalytics.Rmd'}
+```
+
+# Pull the Data
+
+In this example, we'll define a list of six segments dynamically, pull the total users and sessions for each segment, and then combine those results into a single data frame that we can view and visualize.
+
+
+
+We'll use `ganalytics` expressions (using the `Expr()` function) to define the _criteria_ for each segment. Then, we'll combine those into a list that, ultimately, we will work on to actually pull the data. 
+
+```{r define-segments, message=FALSE, warning=FALSE}
+
+# Bounced sessions: Sessions where the bounces metric is not zero. The base "bounces" expression gets
+# used in a couple of ways. For the "bounced users," it get passed to the PerSession() function to 
+# only count once per session
+bounces <- Expr(~bounces != 0)
+bounced_sessions <- PerSession(bounces)
+
+# Mobile or tablet sessions: Sessions by mobile and tablet users.
+mobile_or_tablet <- Expr(~deviceCategory %in% c("mobile", "tablet"))
+
+# Converters: Users who performed any type of conversion during the defined date range. Note
+# how the base expression is then passed into the PerUser() function to get a "per user" count
+# of converters.
+conversions <- Expr(~goalCompletionsAll > 0) | Expr(~transactions > 0)
+converters <-  PerUser(conversions)
+
+# Multi-session users: Users who have visited more than once during the defined date range.
+# This uses both PerUser() and Include() to properly calculate mutiple sessions
+multi_session_users <- Expr(~sessions > 1) %>% PerUser() %>% Include(scope = "users")
+
+# New desktop users: Sessions by new visitors using a desktop device.
+new_desktop_users <- Expr(~deviceCategory == "desktop") & Expr(~userType == "new")
+
+# Bounced before converting = Users who bounced in one session before converting later.
+bounced_before_converting <- Sequence(bounces, conversions, scope = "users")
+
+# Now, combine all of these into a single list so we can work with it as one object
+my_segment_list <- list(
+  bounced_sessions = bounced_sessions,
+  mobile_or_tablet = mobile_or_tablet,
+  converters = converters,
+  multi_session_users = multi_session_users,
+  new_desktop_users = new_desktop_users,
+  bounced_before_converting = bounced_before_converting
+)
+```
+
+Because the Google Analytics Reporting API can only be used to query 4 segments at a time, we need to break our list segments into chunks before using `googleAnalyticsR` to query each chunk of segments and bind the results into a single `data.frame`. For each segment, we will request a count of users and sessions.
+
+```{r pull-data, message=FALSE, warning=FALSE, results='hide'}
+
+# Split our list into chunks with no more than four segments in each chunk
+segment_chunks <- split(my_segment_list, (seq_along(my_segment_list) - 1L) %/% 4L)
+
+# Pull the data. map_df will ensure the results are returned in a data frame.
+results <- map_df(segment_chunks, function(chunk) {
+  google_analytics(
+    viewId = view_id,
+    date_range = c(start_date, end_date),
+    metrics = c("users", "sessions"),
+    dimensions = c("segment"),
+    segments = Segments(chunk)
+  )
+})
+
+# Display the results
+results
+```
+
+```{r display-pulled-data, echo=FALSE, message=FALSE, warning=FALSE}
+kable(results)
+```
+
+# Data Munging
+
+We will compare users and sessions for each segment using a horizontal column chart. To do this we need to transform the results table into long format in which the count of users and sessions for each segment are on separate rows.
+
+```{r long-results, message=FALSE, warning=FALSE, results='hide'}
+results_long <- results %>%
+  gather(metric, count, users, sessions)
+
+# Display the results
+results_long
+```
+
+```{r show-long-results, echo=FALSE, message=FALSE, warning=FALSE}
+kable(results_long)
+```
+
+# Data Visualization
+
+Finally, create a horizontal bar chart showing the results.
+
+```{r visualize-long-results, message=FALSE, warning=FALSE}
+
+# Create the plot. Note the stat="identity"" (because the data is already aggregated) and
+# the coord_flip(). And, I just can't stand it... added on the additional theme stuff to
+# clean up the plot a bit more.
+gg <- ggplot(results_long) +
+  aes(segment, count, fill = metric) +
+  geom_col(position = "dodge") +
+  coord_flip() +
+  guides(fill = guide_legend(reverse = TRUE)) +
+  theme_light()
+
+# Output the plot. You *could* just remove the "gg <-" in the code above, but it's
+# generally a best practice to create a plot object and then output it, rather than
+# outputting it on the fly.
+gg
+
+```
+

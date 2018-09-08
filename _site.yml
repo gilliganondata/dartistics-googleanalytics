@@ -33,6 +33,10 @@ navbar:
       menu:
        - text: "Multiple Dynamic Segments"
          href: adv-multiple-dynamic-segments.html
+       - text: "Dynamic Segments (ganalytics)"
+         href: adv-dynamic-segments-ganalytics.html
+       - text: "Filters (ganalytics)"
+         href: adv-filters.html
        - text: "Sankey Chart (Traffic Flows)"
          href: adv-sankey.html
        - text: "Waterfall Chart (Churn Rate)"
