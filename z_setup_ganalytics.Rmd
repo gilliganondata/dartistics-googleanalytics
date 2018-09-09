@@ -23,26 +23,27 @@ pacman::p_load(tidyverse,         # Includes dplyr, ggplot2, and others; very ke
                googleVis,         # Useful for some of the visualizations
                scales)            # Useful for some number formatting in the visualizations
 
-# If googleAnalyticsR is NOT installed OR if it is not a sufficiently current version, 
-# install it from GitHub
-
-# Check if ANY version of googleAnalyticsR is installed. This is clunky, but p_load_current_gh
-# wasn't playing nice (and this does need some conditional checking.)
-if("googleAnalyticsR" %in% rownames(installed.packages())){
-  # Check the *version* of that package to make sure it's current enough. If it's
-  # not, then re-install from GitHub
-  if(packageVersion("googleAnalyticsR") < "0.5.0.9001") {
-    devtools::install_github("MarkEdmondson1234/googleAnalyticsR")
+# A function to check that a sufficiently current version of a specific package is 
+# installed and loaded. This isn't particularly elegant, but it works.
+package_check <- function(package, min_version, github_location){
+  # Check if ANY version of the package is installed. This is clunky, but p_load_current_gh
+  # wasn't playing nice (and this does need some conditional checking.)
+  if(package %in% rownames(installed.packages())){
+    # IF a version of the package is already installed, then check the *version* of that
+    # package to make sure it's current enough. If it'snot, then re-install from GitHub
+    if(packageVersion(package) < min_version) {
+      devtools::install_github(github_location)
+    }
+  } else {
+    devtools::install_github(github_location)
   }
-} else {
-  devtools::install_github("MarkEdmondson1234/googleAnalyticsR")
+  # Load the package
+  library(package, character.only = TRUE)
 }
 
-# Load the googleAnalyticsR package
-library(googleAnalyticsR)
-
-# Load the GitHub version of ganalytics if it's not already loaded
-pacman::p_load_gh("jdeboer/ganalytics")
+# As needed, install and load googleAnalyticsR and ganalytics from GitHub
+package_check("googleAnalyticsR", "0.5.0.9001", "MarkEdmondson1234/googleAnalyticsR")
+package_check("ganalytics", "0.10.4.9000", "jdeboer/ganalytics")
 
 # Authorize GA. Depending on if you've done this already and a .ga-httr-oauth file has
 # been saved or not, this may pop you over to a browser to authenticate.

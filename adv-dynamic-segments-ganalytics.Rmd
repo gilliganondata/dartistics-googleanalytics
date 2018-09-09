@@ -2,10 +2,10 @@
 title: "Advanced Dynamic Segments with ganalytics"
 ---
 
-This example demonstrates another way of defining dynamic segments by using functions from the `ganalytics` package. As of the most recent update to this site, this requires a "dev" (development) version of two packages:
+This example demonstrates another way of defining dynamic segments by using functions from the `ganalytics` package. As of the most recent update to this site, this requires a "dev" (development) version of two packages (both packages exist on CRAN, but they require the dev versions to use the examples here):
 
-* `googleAnalyticsR` -- which exists on CRAN, but has more current versions posted on Github
-* `ganalytics` -- which does not yet exist on CRAN, but may at some point
+* `googleAnalyticsR`
+* `ganalytics`
 
 This actually means this example has the incidental educational value of showing how to use packages from GitHub! You can read up on the purpose of `ganalytics` -- developed by [Johann de Boer](https://twitter.com/johannux) -- [on GitHub](https://github.com/jdeboer/ganalytics). But, in short, it's intended to "support R users in defining reporting queries using natural R expressions instead of being concerned about API technical intricacies like query syntax, character code escaping and API limitations." 
 
