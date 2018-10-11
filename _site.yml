@@ -25,6 +25,8 @@ navbar:
       menu:
        - text: "2D Sparklines/Heatmap"
          href: pivot-sparklines-heatmap.html
+       - text: "Time-Normalized Traffic"
+         href: int-time-normalized.html
        - text: "Simple Dynamic Segment - v4"
          href: simple-dynamic-segment.html
        - text: "Simple Dynamic Segment - v3"

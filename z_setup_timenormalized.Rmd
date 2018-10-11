@@ -1,0 +1,54 @@
+Be sure you've completed the steps on the [Initial Setup](setup.html) page before running this code.
+
+For the setup, we're going to load a few libraries, load our specific Google Analytics credentials, and then authorize with Google.
+
+```{r hidden-setup, echo=FALSE, message=FALSE, warning=FALSE}
+
+# This snippet won't get rendered. It's purely for functionality that will make the web
+# pages render more cleanly.
+
+library(knitr)   # Mainly... so we can use kable()
+```
+
+```{r setup, message=FALSE, warning=FALSE}
+# Load the necessary libraries. These libraries aren't all necessarily required for every
+# example, but, for simplicity's sake, we're going ahead and including them in every example.
+# The "typical" way to load these is simply with "library([package name])." But, the handy
+# thing about using the approach below -- which uses the pacman package -- is that it will
+# check that each package exists and actually install any that are missing before loading
+# the package.
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(googleAnalyticsR,  # How we actually get the Google Analytics data
+               tidyverse,         # Includes dplyr, ggplot2, and others; very key!
+               devtools,          # Generally handy
+               plotly,            # We're going to make the charts interactive
+               scales)            # Useful for some number formatting in the visualizations
+
+# Authorize GA. Depending on if you've done this already and a .ga-httr-oauth file has
+# been saved or not, this may pop you over to a browser to authenticate.
+ga_auth(token = ".ga-httr-oauth")
+
+# Set the view ID and the date range. If you want to, you can swap out the Sys.getenv()
+# call and just replace that with a hardcoded value for the view ID. And, the start 
+# and end date are currently set to choose the last 365 days, but those can be 
+# hardcoded as well.
+view_id <- Sys.getenv("GA_VIEW_ID")
+start_date <- Sys.Date() - 365        # The last year
+end_date <- Sys.Date() - 1            # Yesterday
+
+# We're going to have R try to figure out when a page actually launched by finding the
+# first day (in the data that is pulled) where the page had at least X unique pageviews.
+# So, we're going to set "X" here. This may be something to fiddle around with for your
+# site (the larger the site, the larger this number can be).
+first_day_pageviews_min <- 2
+
+# We also don't want to include pages that have total traffic (daily unique pageviews)
+# that are relatively low. So, set a cutoff for those, too.
+total_unique_pageviews_cutoff <- 500
+
+# Finally, we want to set how many "days from launch" we want to include in our display.
+days_live_range <- 60
+
+```
+
+If that all runs with just some messages but no errors, then you're set for the next chunk of code: pulling the data.
